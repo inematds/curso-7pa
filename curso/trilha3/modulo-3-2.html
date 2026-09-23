@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+<script>
+(function () {
+  try {
+    var html = document.documentElement;
+    var DEF = { theme: 'inema-dark', font: 'inter', fontScale: 100, lineWidth: 68, leading: 1.7, accent: 'emerald' };
+    function clone(o) { var r = {}; for (var x in o) r[x] = o[x]; return r; }
+    var p = clone(DEF);
+    try {
+      var raw = localStorage.getItem('inema.prefs');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          for (var k in DEF) if (parsed[k] != null) p[k] = parsed[k];
+        }
+      } else {
+        // fallback ao tema legado do v1
+        var legacy = localStorage.getItem('theme');
+        if (legacy === 'light') p.theme = 'claro';
+        else if (legacy === 'dark') p.theme = 'inema-dark';
+      }
+    } catch (e) { p = clone(DEF); }
+
+    // mapa tema -> (.dark on/off, data-theme, color-scheme)
+    var THEMES = {
+      'inema-dark': { dark: true,  attr: null,        cs: 'dark'  },
+      'claro':      { dark: false, attr: null,        cs: 'light' },
+      'sepia':      { dark: false, attr: 'sepia',     cs: 'light' },
+      'foco':       { dark: null,  attr: 'foco',      cs: null    },  // herda eixo atual
+      'contraste':  { dark: true,  attr: 'contraste', cs: 'dark'  }
+    };
+    var t = THEMES[p.theme] || THEMES['inema-dark'];
+
+    if (t.dark === true) html.classList.add('dark');
+    else if (t.dark === false) html.classList.remove('dark');
+    // 'foco' (null) preserva o que ja houver no atributo class do <html>
+
+    if (t.attr) html.setAttribute('data-theme', t.attr);
+    else html.removeAttribute('data-theme');
+
+    html.style.colorScheme = (t.cs ? t.cs : (html.classList.contains('dark') ? 'dark' : 'light'));
+
+    html.setAttribute('data-font', p.font || 'inter');
+    html.setAttribute('data-accent', p.accent || 'emerald');
+
+    // variaveis de leitura (espelham learn.js / learn.css) ANTES do paint
+    var s = html.style;
+    var scale = (+p.fontScale || 100);
+    s.setProperty('--inema-font-scale', (scale / 100).toString());
+    s.setProperty('font-size', scale + '%');               // :root em %, nunca px
+    s.setProperty('--measure', (+p.lineWidth || 68) + 'ch');
+    s.setProperty('--lh-body', (+p.leading || 1.7).toString());
+    var fam = p.font === 'system'
+      ? 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
+      : (p.font === 'leitura'
+        ? '"Atkinson Hyperlegible", "Inter", system-ui, sans-serif'
+        : '"Inter", system-ui, sans-serif');
+    s.setProperty('--font-body', fam);
+
+    var ACC = {
+      emerald: [152, 76, 45], blue: [217, 91, 60], purple: [258, 90, 66],
+      amber: [38, 92, 50], teal: [174, 72, 41], rose: [350, 89, 60]
+    };
+    var a = ACC[p.accent] || ACC.emerald;
+    s.setProperty('--accent-h', a[0] + '');
+    s.setProperty('--accent-s', a[1] + '%');
+    s.setProperty('--accent-l', a[2] + '%');
+    s.setProperty('--accent', 'hsl(' + a[0] + ' ' + a[1] + '% ' + a[2] + '%)');
+  } catch (err) {
+    // qualquer falha => default dark, preserva a marca
+    try { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; } catch (e) {}
+  }
+})();
+</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Observação e supervisão | Gestão de Agentes de IA · INEMA</title>
+<meta content="Curso de gestão de agentes de IA: intenção, contexto, dados, critério de sucesso, autonomia com limites, observação e supervisão humana. Com a Ficha do Agente, galeria de casos e projeto final." name="description"/>
+<meta content="gestao-agentes-7pa" name="inema-course"/>
+<meta content="../../" name="course-root"/>
+<script data-inema-manifest="" type="application/json">{"course": "gestao-agentes-7pa", "tracks": [{"n": "1", "title": "A virada", "modules": [{"id": "1-1", "title": "Da ferramenta à equipe", "topics": 6, "href": "curso/trilha1/modulo-1-1.html"}, {"id": "1-2", "title": "Separe o marketing do método", "topics": 6, "href": "curso/trilha1/modulo-1-2.html"}]}, {"n": "2", "title": "Delegar bem", "modules": [{"id": "2-1", "title": "Intenção e contexto", "topics": 6, "href": "curso/trilha2/modulo-2-1.html"}, {"id": "2-2", "title": "Dados confiáveis e critério de sucesso", "topics": 6, "href": "curso/trilha2/modulo-2-2.html"}]}, {"n": "3", "title": "Autonomia e supervisão", "modules": [{"id": "3-1", "title": "Autonomia com limites", "topics": 6, "href": "curso/trilha3/modulo-3-1.html"}, {"id": "3-2", "title": "Observação e supervisão", "topics": 6, "href": "curso/trilha3/modulo-3-2.html"}]}, {"n": "4", "title": "O segredo e o projeto", "modules": [{"id": "4-1", "title": "O segredo: você já sabe isso", "topics": 6, "href": "curso/trilha4/modulo-4-1.html"}, {"id": "4-2", "title": "Projeto final: seu agente em produção", "topics": 6, "href": "curso/trilha4/modulo-4-2.html"}]}]}</script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="../../assets/course.css" rel="stylesheet"/>
+<link href="../../assets/learn.css" rel="stylesheet"/>
+<link href="../../assets/patches.css" rel="stylesheet"/>
+<link href="https://inematds.github.io/curso-7pa/curso/trilha3/modulo-3-2.html" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha3/modulo-3-2.html" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha3/modulo-3-2.html" hreflang="es" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha3/modulo-3-2.html" hreflang="x-default" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha3/modulo-3-2.html" rel="canonical"/><style id="course-language-css">[data-course-languages]{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:1.25rem;padding:.65rem;justify-content:center;background:#111827;color:#f3f4f6}[data-course-languages] a{color:inherit;font:14px system-ui}[data-course-languages] [aria-current]{font-weight:bold;text-decoration:underline}[data-course-languages] a:focus-visible{outline:2px solid #38bdf8;outline-offset:4px}body{padding-bottom:75px}</style></head>
+<body class="track-3">
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+<nav aria-label="Navegação principal" class="site-nav">
+<div class="wrap nav-row">
+<a aria-label="7 Princípios, início" class="brand" href="../../index.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 32 32">
+<circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.2"></circle>
+<circle cx="16" cy="16" fill="currentColor" r="3.2"></circle>
+<path d="M16 4v5M16 23v5M4 16h5M23 16h5" stroke="currentColor" stroke-width="2.2"></path>
+</svg>
+<span class="brand-name">7 PRINCÍPIOS</span>
+</a>
+<a class="text-sky-400" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span aria-hidden="true" class="nav-sep">-</span>
+<a class="nav-pro text-amber-700 dark:text-slate-300" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+<div class="nav-links">
+<a class="" href="../../curso/trilha1/index.html">
+<span class="nav-full">A virada</span>
+<span class="nav-short">T1</span>
+</a>
+<a class="" href="../../curso/trilha2/index.html">
+<span class="nav-full">Delegar bem</span>
+<span class="nav-short">T2</span>
+</a>
+<a aria-current="page" class="active" href="../../curso/trilha3/index.html">
+<span class="nav-full">Autonomia e supervisão</span>
+<span class="nav-short">T3</span>
+</a>
+<a class="" href="../../curso/trilha4/index.html">
+<span class="nav-full">O segredo e o projeto</span>
+<span class="nav-short">T4</span>
+</a>
+</div>
+<button aria-label="Alternar tema claro e escuro" class="theme-toggle" id="theme-toggle">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"></circle>
+<path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2" stroke="currentColor" stroke-width="1.6"></path>
+</svg>
+</button>
+</div>
+</nav>
+<div class="wrap studybar">
+<div class="tools">
+<button data-inema-journey-open="">Minha jornada</button>
+<button data-course-resume="">Continuar leitura</button>
+<div class="appearance-wrap">
+<button aria-controls="appearance" aria-expanded="false" data-inema-appearance-toggle="#appearance">Aparência</button>
+<div class="inema-appearance-pop" data-inema-appearance="" data-open="false" id="appearance">
+<h3>Tema</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-theme="inema-dark">Escuro</button>
+<button aria-pressed="false" data-inema-set-theme="claro">Claro</button>
+<button aria-pressed="false" data-inema-set-theme="sepia">Sépia</button>
+<button aria-pressed="false" data-inema-set-theme="foco">Foco</button>
+<button aria-pressed="false" data-inema-set-theme="contraste">Alto contraste</button>
+</div>
+<h3>Fonte</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-font="inter">Inter / sistema</button>
+<button aria-pressed="false" data-inema-set-font="system">Sistema</button>
+<button aria-pressed="false" data-inema-set-font="leitura">Leitura</button>
+</div>
+<h3>Tamanho</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-fontscale="100">100%</button>
+<button aria-pressed="false" data-inema-set-fontscale="112">112%</button>
+<button aria-pressed="false" data-inema-set-fontscale="125">125%</button>
+</div>
+<h3>Largura de texto</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-linewidth="60">Estreita</button>
+<button aria-pressed="false" data-inema-set-linewidth="68">Média</button>
+<button aria-pressed="false" data-inema-set-linewidth="75">Larga</button>
+</div>
+<h3>Entrelinha</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-leading="1.45">Compacta</button>
+<button aria-pressed="false" data-inema-set-leading="1.7">Confortável</button>
+</div>
+<h3>Acento dos controles</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-accent="emerald">Verde</button>
+<button aria-pressed="false" data-inema-set-accent="blue">Azul</button>
+<button aria-pressed="false" data-inema-set-accent="purple">Roxo</button>
+<button aria-pressed="false" data-inema-set-accent="amber">Âmbar</button>
+<button aria-pressed="false" data-inema-set-accent="teal">Turquesa</button>
+<button aria-pressed="false" data-inema-set-accent="rose">Rosa</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="Progresso de leitura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="curso" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+</div>
+<noscript>
+<p class="wrap no-script">Você pode ler todas as aulas sem JavaScript. Progresso, notas e controles de aparência precisam de JavaScript.</p>
+</noscript>
+<main class="wrap" id="conteudo">
+<div class="breadcrumb">
+<a href="../../index.html">Início</a> / <a href="index.html">Autonomia e supervisão</a> / Módulo 3.2</div>
+<header class="hero">
+<span class="pill">MÓDULO 3.2</span>
+<h1>Observação e supervisão</h1>
+<p class="lead">Acompanhe o agente com relatório, registro de falhas e gatilhos, e mantenha o julgamento com você.</p>
+<p>
+<strong>Ao final:</strong> Montar o relatório, o registro de falhas, os gatilhos e o ritual de supervisão de um agente, e transformar cada erro em regra.</p>
+</header>
+<div class="stats">
+<div class="stat">
+<strong>6</strong>
+<span>tópicos</span>
+</div>
+<div class="stat">
+<strong>50 min</strong>
+<span>estimativa com prática</span>
+</div>
+<div class="stat">
+<strong>6</strong>
+<span>exercícios comentados</span>
+</div>
+<div class="stat">
+<strong>1</strong>
+<span>checagem final</span>
+</div>
+</div>
+<div class="reading-layout">
+<aside aria-label="Índice do módulo" class="toc" data-inema-toc="">
+<h2>Neste módulo</h2>
+<span data-inema-section-counter="">Seção 1 de 6</span>
+<ol>
+<li>
+<a href="#topico-1">1. O relatório que você quer ler</a>
+</li>
+<li>
+<a href="#topico-2">2. Registro de falhas: uma linha por erro</a>
+</li>
+<li>
+<a href="#topico-3">3. Gatilhos: quando ele para e te chama</a>
+</li>
+<li>
+<a href="#topico-4">4. O ritual: 2 minutos por dia, 10 por semana, 1 revisão por mês</a>
+</li>
+<li>
+<a href="#topico-5">5. Supervisão é responsabilidade humana</a>
+</li>
+<li>
+<a href="#topico-6">6. O ciclo: erro vira regra</a>
+</li>
+</ol>
+<div aria-label="Progresso de leitura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="modulo:3-2" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+<p class="muted">Selecione um trecho das explicações para grifar ou anotar.</p>
+</aside>
+<article class="lesson-content" data-inema-module="3-2" data-inema-track="3">
+<section class="lesson" data-inema-topic="modulo-3-2#topico-1" id="topico-1">
+<div class="lesson-head">
+<span class="circle">1</span>
+<h2>O relatório que você quer ler</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Números do dia → Casos para você → Erros → Horário fixo" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-2-1-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-2-1-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-2-1-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-2-1-grid)" height="200" width="720"></rect>
+<path d="M179 65 H192 V91 H197" fill="none" marker-end="url(#d3-2-1-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-2-1-glow)" height="72" rx="10" stroke="#c084fc" stroke-width="2" width="150" x="25" y="25"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="66.0">Números do dia</text>
+</g>
+<path d="M354 91 H367 V117 H372" fill="none" marker-end="url(#d3-2-1-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="200" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="92.0">Casos para você</text>
+</g>
+<path d="M529 117 H542 V143 H547" fill="none" marker-end="url(#d3-2-1-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="375" y="77"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="118.0">Erros</text>
+</g>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="550" y="103"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="144.0">Horário fixo</text>
+</g>
+</svg>
+</div>
+<figcaption>O relatório tem sempre as mesmas partes na mesma ordem, e a seção de erros existe mesmo quando está vazia.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m3-2-t1-p1" id="m3-2-t1-p1">Relatório é o resumo que o agente entrega em um horário combinado, dizendo o que fez. Um bom relatório tem poucos números simples (quantos enviados, confirmados, pendentes), a lista de casos que ele passou para você e a lista de erros. Ele cabe numa tela e é lido em dois minutos. A regra de ouro: erro nunca fica escondido, sempre aparece numa seção própria.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m3-2-t1-p2" id="m3-2-t1-p2">Sem relatório, você só descobre o que o agente fez quando algo dá errado e alguém reclama. Com relatório, você vê o problema no mesmo dia. Relatório que só mostra sucesso é pior que nenhum: dá falsa segurança. É a partir dele que você decide se o agente sobe ou desce de nível.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Números simples</strong>3 a 5 contagens que você entende de relance.</div>
+<div class="key">
+<strong>Casos passados para você</strong>o que precisa de decisão humana.</div>
+<div class="key">
+<strong>Erros</strong>sempre numa seção própria, mesmo que seja “nenhum”.</div>
+<div class="key">
+<strong>Horário fixo</strong>todo dia ou toda semana, sempre na mesma hora.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 3.2.1</span>
+<button data-copy="code-3-2-1">Copiar exemplo</button>
+</div>
+<pre id="code-3-2-1">
+<code>Objetivo: pedir ao agente um relatório curto e honesto.
+
+RELATÓRIO — entregar &lt;todo dia às 17h&gt;
+1. Números: &lt;enviados · confirmados · não responderam · erros&gt;
+2. Passados para você: &lt;nome, motivo em 1 linha&gt;
+3. Erros: liste todos, mesmo os pequenos. Se não houve, escreva “Nenhum erro hoje”.
+4. Dúvidas: o que você não soube fazer.
+Nunca omita um erro para o relatório parecer melhor.
+
+Como verificar: provoque um erro de propósito (um cadastro com telefone vazio) e confira se ele aparece na seção 3 do relatório.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Exija a seção de erros sempre presente, com “nenhum erro” escrito quando for o caso.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Pedir um relatório longo e bonito que ninguém lê, ou um que só mostra o que deu certo.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Leve para o seu agente.</strong> O relatório tem sempre as mesmas partes na mesma ordem, e a seção de erros existe mesmo quando está vazia. Use essa ideia para revisar a ficha do seu agente antes de avançar.</aside>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Escreva as 4 contagens que você gostaria de ver no relatório diário do coordenador de voluntários de uma ONG.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Algo como: postos confirmados, recusas, substitutos encontrados e postos ainda vagos. O último é o mais importante, porque é o que exige ação sua antes do fim de semana. Bons números apontam para uma decisão, não só para volume.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-2#topico-2" id="topico-2">
+<div class="lesson-head">
+<span class="circle">2</span>
+<h2>Registro de falhas: uma linha por erro</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Data → O que quebrou → Menor correção → Regra alterada" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-2-2-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-2-2-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-2-2-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-2-2-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d3-2-2-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-2-2-glow)" height="74" rx="10" stroke="#c084fc" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Data</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d3-2-2-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">O que quebrou</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d3-2-2-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">Menor correção</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Regra alterada</text>
+</g>
+</svg>
+</div>
+<figcaption>Cada erro atravessa as mesmas quatro colunas, e a última liga o erro a uma mudança concreta na ficha do agente.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m3-2-t2-p1" id="m3-2-t2-p1">O registro de falhas é uma tabela simples onde cada erro do agente vira uma linha: data, o que quebrou, a menor correção e qual regra da ficha foi alterada. Log, nome técnico para esse tipo de registro, é só isso: uma anotação datada do que aconteceu. Não é relatório de incidente nem ata de reunião; é uma linha, escrita na hora, sem narrativa.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m3-2-t2-p2" id="m3-2-t2-p2">Depois de umas dez linhas, o padrão aparece sozinho: os erros se concentram na mesma regra, na mesma fonte ou no mesmo tipo de cliente. Sem registro, cada erro parece novo e você tende a reescrever tudo. Com registro, você vê que bastava uma proteção, como um teto, uma verificação ou uma proibição a mais. Ele também é a evidência para subir ou descer de nível.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Data</strong>quando o erro foi percebido.</div>
+<div class="key">
+<strong>O que quebrou</strong>o fato, em uma frase, sem culpados.</div>
+<div class="key">
+<strong>Menor correção</strong>a menor mudança que evita a repetição.</div>
+<div class="key">
+<strong>Regra alterada</strong>qual linha da ficha mudou.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 3.2.2</span>
+<button data-copy="code-3-2-2">Copiar exemplo</button>
+</div>
+<pre id="code-3-2-2">
+<code>Objetivo: manter o registro de falhas do agente numa tabela de uma linha por erro.
+
+| data | o que quebrou | menor correção | regra da ficha alterada |
+|---|---|---|---|
+| &lt;12/09&gt; | &lt;mandou lembrete para paciente de sábado&gt; | &lt;checar dia da semana antes de enviar&gt; | &lt;Regras: “Sábado não tem atendimento” virou verificação obrigatória&gt; |
+| &lt;15/09&gt; | &lt;respondeu preço de serviço antigo&gt; | &lt;usar só a tabela atual&gt; | &lt;Fonte: “tabela impressa não vale”&gt; |
+
+Como verificar: toda linha tem as 4 colunas preenchidas; linha sem “regra alterada” significa que o erro ainda pode voltar.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Do conceito à ação</h3>
+<ol>
+<li>Data: identificar a condição inicial.</li>
+<li>O que quebrou: aplicar a decisão descrita.</li>
+<li>Menor correção: conferir o efeito no exemplo.</li>
+<li>Regra alterada: registrar a evidência de saída.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Anote a linha no mesmo dia do erro, antes de passar para a próxima tarefa.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Guardar os erros na memória e tentar lembrar deles só na revisão do mês.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>O agente da loja prometeu a um cliente uma data de entrega que não estava no sistema. Escreva a linha do registro.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Exemplo: 18/09 · prometeu data de entrega fora do sistema · só informar datas que estão no painel de pedidos · Proibições ganhou “prometer data que não está no sistema”. Repare que a correção é pequena e verificável; não é “melhorar o atendimento”.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-2#topico-3" id="topico-3">
+<div class="lesson-head">
+<span class="circle">3</span>
+<h2>Gatilhos: quando ele para e te chama</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Situação acontece → É um gatilho? → Para e te chama → Você decide" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-2-3-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-2-3-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-2-3-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-2-3-grid)" height="200" width="720"></rect>
+<path d="M225 100 C310 100 315 34 365 34" fill="none" marker-end="url(#d3-2-3-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 100 365 100" fill="none" marker-end="url(#d3-2-3-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 166 365 166" fill="none" marker-end="url(#d3-2-3-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-2-3-glow)" height="70" rx="10" stroke="#c084fc" stroke-width="2" width="205" x="20" y="65"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="122.5" y="105.0">Situação acontece</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="10"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="39.0">É um gatilho?</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="76"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="105.0">Para e te chama</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="142"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="171.0">Você decide</text>
+</g>
+</svg>
+</div>
+<figcaption>O gatilho interrompe o fluxo normal e devolve a decisão ao humano antes que o erro saia do controle.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m3-2-t3-p1" id="m3-2-t3-p1">Gatilhos são as situações em que o agente para o que está fazendo e chama você na hora, sem esperar o relatório. Isso é o escalonamento, também chamado de escalada: passar o caso para quem tem autoridade de decidir. Bons gatilhos são concretos e observáveis, como “cliente ameaçando reclamar”, “queda acima de 50%” ou “dois pacientes no mesmo horário”. Cada ficha tem de 3 a 5.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m3-2-t3-p2" id="m3-2-t3-p2">O relatório mostra o que aconteceu; o gatilho impede que o pior aconteça antes do relatório. Sem gatilhos, o agente tenta resolver sozinho situações que exigem julgamento, e é aí que nascem as reclamações sérias. Gatilhos que funcionam também são o critério para chegar a N4: sem alarmes testados, não há processo inteiro nas mãos do agente.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Concreto</strong>algo que o agente consegue reconhecer sem interpretar.</div>
+<div class="key">
+<strong>Urgente</strong>não pode esperar o relatório do fim do dia.</div>
+<div class="key">
+<strong>Ação clara</strong>ele para, avisa você e não tenta resolver.</div>
+<div class="key">
+<strong>Testado</strong>cada gatilho passou por um teste antes de ligar.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 3.2.3</span>
+<button data-copy="code-3-2-3">Copiar exemplo</button>
+</div>
+<pre id="code-3-2-3">
+<code>Objetivo: colar a lista de gatilhos na instrução do agente e testar o primeiro.
+
+PARE E ME CHAME NA HORA quando:
+- &lt;Cliente irritado ou ameaçando reclamar&gt;
+- &lt;Pedido de reembolso&gt;
+- &lt;Produto com defeito&gt;
+Como chamar: &lt;mensagem no meu WhatsApp com nome do cliente e resumo em 2 linhas&gt;.
+Enquanto espera: diga ao cliente “&lt;Já passei para a responsável, ela vai te responder hoje.&gt;” e não prometa nada.
+
+Como verificar: simule “vou reclamar no Procon” e confira se você recebe o aviso e se o agente parou de negociar.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Escreva gatilhos que o agente reconhece por fatos, e teste pelo menos o primeiro antes de ligar.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Usar gatilhos vagos como “situação delicada”, que o agente não sabe identificar.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Escreva três gatilhos para o assistente que faz a primeira correção de redações de um professor.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Bons exemplos: suspeita de plágio ou de texto feito por IA, conteúdo preocupante como bullying ou risco ao aluno, e redação fora do tema. Os três exigem julgamento humano e têm consequência para o aluno; o agente marca e para, não decide.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-2#topico-4" id="topico-4">
+<div class="lesson-head">
+<span class="circle">4</span>
+<h2>O ritual: 2 minutos por dia, 10 por semana, 1 revisão por mês</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Antes de ligar → Todo dia · 2 min → Toda semana · 10 min → Todo mês · nível" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-2-4-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-2-4-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-2-4-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-2-4-grid)" height="200" width="720"></rect>
+<path d="M280 54 H414" fill="none" marker-end="url(#d3-2-4-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M540 87 V110" fill="none" marker-end="url(#d3-2-4-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M420 148 H287" fill="none" marker-end="url(#d3-2-4-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M160 116 V92" fill="none" marker-end="url(#d3-2-4-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-2-4-glow)" height="64" rx="10" stroke="#c084fc" stroke-width="2" width="240" x="40" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="59.0">Antes de ligar</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="59.0">Todo dia · 2 min</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="153.0">Toda semana · 10 min</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="40" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="153.0">Todo mês · nível</text>
+</g>
+</svg>
+</div>
+<figcaption>O ritual vai do mais frequente e curto ao mais raro e estratégico, e cada frequência tem uma pergunta diferente.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m3-2-t4-p1" id="m3-2-t4-p1">Supervisão não é ficar olhando o agente trabalhar; é um ritual curto e fixo. Todo dia, 2 minutos: ler o relatório, resolver os casos passados para você e anotar erros no registro. Toda semana, 10 minutos: reler os erros e ajustar uma única regra da ficha. Todo mês: perguntar se o nível ainda é o certo e se a tarefa continua a mesma. Antes de ligar, um passo extra: os 3 testes passaram e a equipe sabe que existe um agente.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m3-2-t4-p2" id="m3-2-t4-p2">Sem ritual, a supervisão acontece só quando algo explode, e aí já é tarde. Com o ritual, o custo de supervisionar fica pequeno e previsível, cabe na agenda de um dono de negócio. Ajustar uma regra por semana, e não cinco, permite saber qual mudança resolveu o problema.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Antes de ligar</strong>3 testes, fonte atualizada, equipe avisada.</div>
+<div class="key">
+<strong>Todo dia</strong>2 minutos no relatório e nos casos passados.</div>
+<div class="key">
+<strong>Toda semana</strong>10 minutos e uma regra ajustada.</div>
+<div class="key">
+<strong>Todo mês</strong>o nível e a tarefa ainda são os certos?</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 3.2.4</span>
+<button data-copy="code-3-2-4">Copiar exemplo</button>
+</div>
+<pre id="code-3-2-4">
+<code>Objetivo: imprimir e usar o checklist de supervisão do agente.
+
+ANTES DE LIGAR
+☐ Os 3 testes passaram
+☐ A fonte oficial está atualizada
+☐ Todos sabem que existe um agente fazendo isso
+
+TODO DIA (2 minutos)
+☐ Li o relatório (&lt;todo dia às 17h&gt;)
+☐ Resolvi os casos em que ele me chamou
+☐ Algum erro? Anotei numa linha: data · o que houve · a menor correção
+
+TODA SEMANA (&lt;sexta, 10 minutos&gt;)
+☐ Reli os erros anotados da semana
+☐ Ajustei UMA regra da ficha (não mais que uma)
+☐ O critério de sucesso foi atingido?
+
+TODO MÊS
+☐ O nível &lt;N2&gt; continua certo?
+☐ A tarefa ainda é a mesma? Se mudou, refaça a ficha.
+
+Como verificar: ao fim do mês, conte quantos quadrados diários ficaram vazios. Mais de cinco significa que o ritual não cabe na sua rotina e precisa ser ajustado.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Marque na agenda o horário do relatório e o dia da revisão semanal, como um compromisso fixo.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Mudar várias regras ao mesmo tempo depois de uma semana ruim.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Leve para o seu agente.</strong> O ritual vai do mais frequente e curto ao mais raro e estratégico, e cada frequência tem uma pergunta diferente. Use essa ideia para revisar a ficha do seu agente antes de avançar.</aside>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Escolha um agente seu e defina o horário exato do relatório diário e o dia da revisão semanal.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>O melhor horário é logo depois que o agente termina o turno, quando você ainda consegue agir no mesmo dia. A revisão semanal funciona melhor num dia calmo, como sexta de manhã ou segunda cedo. Se não consegue nomear o horário, a supervisão ainda não existe.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-2#topico-5" id="topico-5">
+<div class="lesson-head">
+<span class="circle">5</span>
+<h2>Supervisão é responsabilidade humana</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Objetivos e limites → Agente executa → Você audita e decide exceções → Você responde pelo resultado" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-2-5-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-2-5-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-2-5-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-2-5-grid)" height="200" width="720"></rect>
+<path d="M179 65 H192 V91 H197" fill="none" marker-end="url(#d3-2-5-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-2-5-glow)" height="72" rx="10" stroke="#c084fc" stroke-width="2" width="150" x="25" y="25"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="66.0">Objetivos e limites</text>
+</g>
+<path d="M354 91 H367 V117 H372" fill="none" marker-end="url(#d3-2-5-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="200" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="92.0">Agente executa</text>
+</g>
+<path d="M529 117 H542 V143 H547" fill="none" marker-end="url(#d3-2-5-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="375" y="77"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="109.0">Você audita e decide</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="128.0">exceções</text>
+</g>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="550" y="103"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="135.0">Você responde pelo</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="154.0">resultado</text>
+</g>
+</svg>
+</div>
+<figcaption>O agente ocupa o meio do processo, mas as pontas, definir e responder, continuam humanas.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m3-2-t5-p1" id="m3-2-t5-p1">O agente executa, analisa e até decide dentro dos limites da ficha, mas a responsabilidade pelo resultado continua sendo sua. Supervisão, aqui, é a função de gestão: definir objetivos, estabelecer limites, avaliar resultados, corrigir falhas, decidir exceções e evoluir o processo. Auditoria, que é conferir por amostragem se o trabalho está certo, faz parte disso. O agente amplia sua capacidade; não substitui seu julgamento.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m3-2-t5-p2" id="m3-2-t5-p2">Quando algo dá errado com um cliente, “foi a IA” não é resposta aceitável para ninguém: nem para o cliente, nem para a lei, nem para você. Saber o que não se delega evita entregar ao agente decisões que exigem contexto humano, como uma exceção para um cliente antigo ou um caso sensível com um aluno. O seu papel muda de fazer tudo para decidir o que importa.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Julgamento</strong>exceções, casos novos e dilemas ficam com você.</div>
+<div class="key">
+<strong>Auditoria</strong>conferir por amostra, mesmo quando o relatório está limpo.</div>
+<div class="key">
+<strong>Limites</strong>só você sobe o nível ou tira uma proibição.</div>
+<div class="key">
+<strong>Responsabilidade</strong>o resultado responde em seu nome.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 3.2.5</span>
+<button data-copy="code-3-2-5">Copiar exemplo</button>
+</div>
+<pre id="code-3-2-5">
+<code>Objetivo: deixar escrito o que fica com você e fazer uma auditoria semanal por amostra.
+
+O QUE NÃO SE DELEGA NESTE AGENTE
+- Decidir exceções: &lt;cliente antigo pedindo prazo especial&gt;
+- Mudar limites: &lt;subir nível, tirar proibição&gt;
+- Casos sensíveis: &lt;reclamação formal, pergunta jurídica&gt;
+
+AUDITORIA SEMANAL (5 minutos)
+1. Escolha &lt;5&gt; itens ao acaso do trabalho da semana.
+2. Confira cada um contra a fonte oficial.
+3. Anote: &lt;5&gt; conferidos · &lt;0&gt; com erro · erro encontrado vai para o registro de falhas.
+
+Como verificar: se a auditoria achar um erro que não estava no relatório, o relatório está escondendo falhas e precisa ser corrigido primeiro.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Do conceito à ação</h3>
+<ol>
+<li>Objetivos e limites: identificar a condição inicial.</li>
+<li>Agente executa: aplicar a decisão descrita.</li>
+<li>Você audita e decide exceções: conferir o efeito no exemplo.</li>
+<li>Você responde pelo resultado: registrar a evidência de saída.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Confira uma amostra do trabalho toda semana, mesmo quando o relatório diz que está tudo certo.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Deixar o agente decidir exceções porque ele “já conhece o cliente”.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Liste duas decisões do seu negócio que você nunca entregaria a um agente, mesmo em N4, e explique por quê.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Exemplos típicos: aprovar exceção comercial para um cliente e responder uma reclamação formal. Ambas pedem contexto, empatia e responsabilidade que você não consegue transferir. O agente pode preparar a informação, mas a decisão e a assinatura são suas.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-2#topico-6" id="topico-6">
+<div class="lesson-head">
+<span class="circle">6</span>
+<h2>O ciclo: erro vira regra</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Executa → Observa → Ajusta uma regra → Evolui" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-2-6-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-2-6-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-2-6-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-2-6-grid)" height="200" width="720"></rect>
+<path d="M280 54 H414" fill="none" marker-end="url(#d3-2-6-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M540 87 V110" fill="none" marker-end="url(#d3-2-6-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M420 148 H287" fill="none" marker-end="url(#d3-2-6-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M160 116 V92" fill="none" marker-end="url(#d3-2-6-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-2-6-glow)" height="64" rx="10" stroke="#c084fc" stroke-width="2" width="240" x="40" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="59.0">Executa</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="59.0">Observa</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="153.0">Ajusta uma regra</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="40" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="153.0">Evolui</text>
+</g>
+</svg>
+</div>
+<figcaption>Cada volta do ciclo transforma um erro em regra, e a soma das voltas é o que justifica subir de nível.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m3-2-t6-p1" id="m3-2-t6-p1">O fecho dos sete princípios é um ciclo: o agente executa, o relatório e o registro mostram o que aconteceu, você analisa, ajusta uma regra da ficha e o agente volta a executar com a regra nova. Cada erro bem registrado vira uma linha a mais nas regras, nas proibições, nos gatilhos ou na fonte oficial. Com o tempo, a ficha fica mais precisa e o agente pode subir de nível com evidência.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m3-2-t6-p2" id="m3-2-t6-p2">Sem o ciclo, o mesmo erro volta todo mês e a solução parece ser trocar de ferramenta ou reescrever tudo. Com o ciclo, cada falha deixa o sistema um pouco mais forte, e o esforço de supervisão diminui. É assim que um agente começa em N1 e, meses depois, toca um processo inteiro com segurança.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Executa</strong>o agente trabalha dentro do nível combinado.</div>
+<div class="key">
+<strong>Observa</strong>relatório e registro de falhas mostram o que houve.</div>
+<div class="key">
+<strong>Ajusta</strong>uma regra por vez, a menor correção possível.</div>
+<div class="key">
+<strong>Evolui</strong>menos erros, mais evidência, talvez um nível acima.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 3.2.6</span>
+<button data-copy="code-3-2-6">Copiar exemplo</button>
+</div>
+<pre id="code-3-2-6">
+<code>Objetivo: fechar o ciclo de um erro, do registro até a instrução atualizada.
+
+1. ERRO (registro): &lt;20/09 · incluiu cliente que já tinha enviado tudo na lista de pendências&gt;
+2. CAUSA: &lt;olhou a pasta antiga, não a pasta do mês&gt;
+3. MENOR CORREÇÃO: &lt;conferir só a pasta com o mês corrente no nome&gt;
+4. REGRA NOVA NA FICHA (seção Fonte): “&lt;Vale só a pasta do mês corrente. Pastas de meses anteriores não valem.&gt;”
+5. TESTE: &lt;colocar um documento só na pasta antiga e ver se ele marca como pendente&gt;
+6. RESULTADO: &lt;passou em dd/mm&gt; · próxima revisão: &lt;dd/mm&gt;
+
+Como verificar: o mesmo erro não aparece no registro de falhas nas 4 semanas seguintes.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Feche cada erro com uma regra nova e um teste que prova que a regra funciona.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Corrigir o resultado na mão e seguir em frente sem mudar nada na ficha.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Pegue um erro recente de qualquer agente ou assistente que você usa e passe pelos 6 passos do exemplo.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>O passo mais difícil costuma ser a menor correção: a tentação é mudar muita coisa. Se a correção cabe em uma frase e pode ser testada, está no tamanho certo. Se o erro não reaparecer em 4 semanas, o ciclo funcionou e isso conta como evidência para o nível.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="quiz" data-inema-check="q-3-2">
+<span class="eyebrow">CHECAGEM SEM BLOQUEIO</span>
+<h2>Confira seu entendimento</h2>
+<p>O agente errou o preço de um serviço no relatório de ontem. Qual é a resposta certa de supervisão?</p>
+<div class="quiz-options">
+<button data-inema-check-option="0">Anotar uma linha no registro de falhas e ajustar a menor regra que evita o erro.</button>
+<button data-inema-check-option="1">Reescrever a instrução inteira do agente do zero.</button>
+<button data-inema-check-option="2">Ignorar, porque foi um erro só e o resto estava certo.</button>
+</div>
+<div aria-live="polite" data-inema-check-feedback="" role="status">
+</div>
+</section>
+<section class="module-summary">
+<h2>O que você leva deste módulo</h2>
+<p>Montar o relatório, o registro de falhas, os gatilhos e o ritual de supervisão de um agente, e transformar cada erro em regra.</p>
+<ul>
+<li>O relatório que você quer ler.</li>
+<li>Registro de falhas: uma linha por erro.</li>
+<li>Gatilhos: quando ele para e te chama.</li>
+<li>O ritual: 2 minutos por dia, 10 por semana, 1 revisão por mês.</li>
+<li>Supervisão é responsabilidade humana.</li>
+<li>O ciclo: erro vira regra.</li>
+</ul>
+<p>Próxima ação: aplique o que aprendeu na ficha do seu agente e anote o que ainda precisa de revisão.</p>
+</section>
+<div class="actions">
+<a class="btn" href="index.html">← Mapa da trilha</a>
+<a class="btn cta" href="../trilha4/modulo-4-1.html">Próximo: O segredo: você já sabe isso →</a>
+</div>
+</article>
+</div>
+<p class="muted">Referência deste módulo: materiais do projeto 7PA e <a href="../../index.html#fontes">fontes e critérios editoriais do curso</a>.</p>
+</main>
+<footer>
+<div class="wrap">Gestão de Agentes de IA: os 7 Princípios · INEMA.CLUB · v1.0.0 · Curso em português<br/>Material educativo autoral do projeto 7PA. Progresso salvo neste navegador; exporte uma cópia em Minha jornada.<br/>
+<a href="../../index.html#fontes">Fontes e critérios editoriais</a> · <a href="https://inematds.github.io/7pa/" rel="noopener" target="_blank">Ficha do Agente</a> · <a download="" href="../../materiais/entrevistador.md">Prompt entrevistador</a>
+</div>
+</footer>
+<dialog aria-label="Leitura do módulo" id="module-modal">
+<button data-close-modal="">Fechar módulo</button>
+<iframe title="Conteúdo completo do módulo">
+</iframe>
+</dialog>
+<script id="quiz-data" type="application/json">{"id": "q-3-2", "q": "O agente errou o preço de um serviço no relatório de ontem. Qual é a resposta certa de supervisão?", "options": ["Anotar uma linha no registro de falhas e ajustar a menor regra que evita o erro.", "Reescrever a instrução inteira do agente do zero.", "Ignorar, porque foi um erro só e o resto estava certo."], "answer": "0", "explain": {"0": "Uma linha no registro, com a menor correção possível, mantém a história dos erros e evita reconstruir o que só precisava de uma proteção.", "1": "Uma linha no registro, com a menor correção possível, mantém a história dos erros e evita reconstruir o que só precisava de uma proteção.", "2": "Uma linha no registro, com a menor correção possível, mantém a história dos erros e evita reconstruir o que só precisava de uma proteção."}}</script>
+<script src="../../assets/learn.js">
+</script>
+<script src="../../assets/course.js">
+</script>
+<nav aria-label="Idioma do curso" data-course-languages=""><a aria-current="page" href="modulo-3-2.html" hreflang="pt-BR" lang="pt-BR">Português</a><a href="../../en/curso/trilha3/modulo-3-2.html" hreflang="en" lang="en">English</a><a href="../../es/curso/trilha3/modulo-3-2.html" hreflang="es" lang="es">Español</a></nav><script data-course-language-hash="">document.querySelectorAll('[data-course-languages] a').forEach(function(a){a.addEventListener('click',function(){a.href=a.getAttribute('href').split('#')[0]+location.hash;});});</script></body>
+</html>

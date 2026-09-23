@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<script>
+(function () {
+  try {
+    var html = document.documentElement;
+    var DEF = { theme: 'inema-dark', font: 'inter', fontScale: 100, lineWidth: 68, leading: 1.7, accent: 'emerald' };
+    function clone(o) { var r = {}; for (var x in o) r[x] = o[x]; return r; }
+    var p = clone(DEF);
+    try {
+      var raw = localStorage.getItem('inema.prefs');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          for (var k in DEF) if (parsed[k] != null) p[k] = parsed[k];
+        }
+      } else {
+        // fallback ao tema legado do v1
+        var legacy = localStorage.getItem('theme');
+        if (legacy === 'light') p.theme = 'claro';
+        else if (legacy === 'dark') p.theme = 'inema-dark';
+      }
+    } catch (e) { p = clone(DEF); }
+
+    // mapa tema -> (.dark on/off, data-theme, color-scheme)
+    var THEMES = {
+      'inema-dark': { dark: true,  attr: null,        cs: 'dark'  },
+      'claro':      { dark: false, attr: null,        cs: 'light' },
+      'sepia':      { dark: false, attr: 'sepia',     cs: 'light' },
+      'foco':       { dark: null,  attr: 'foco',      cs: null    },  // herda eixo atual
+      'contraste':  { dark: true,  attr: 'contraste', cs: 'dark'  }
+    };
+    var t = THEMES[p.theme] || THEMES['inema-dark'];
+
+    if (t.dark === true) html.classList.add('dark');
+    else if (t.dark === false) html.classList.remove('dark');
+    // 'foco' (null) preserva o que ja houver no atributo class do <html>
+
+    if (t.attr) html.setAttribute('data-theme', t.attr);
+    else html.removeAttribute('data-theme');
+
+    html.style.colorScheme = (t.cs ? t.cs : (html.classList.contains('dark') ? 'dark' : 'light'));
+
+    html.setAttribute('data-font', p.font || 'inter');
+    html.setAttribute('data-accent', p.accent || 'emerald');
+
+    // variaveis de leitura (espelham learn.js / learn.css) ANTES do paint
+    var s = html.style;
+    var scale = (+p.fontScale || 100);
+    s.setProperty('--inema-font-scale', (scale / 100).toString());
+    s.setProperty('font-size', scale + '%');               // :root em %, nunca px
+    s.setProperty('--measure', (+p.lineWidth || 68) + 'ch');
+    s.setProperty('--lh-body', (+p.leading || 1.7).toString());
+    var fam = p.font === 'system'
+      ? 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
+      : (p.font === 'leitura'
+        ? '"Atkinson Hyperlegible", "Inter", system-ui, sans-serif'
+        : '"Inter", system-ui, sans-serif');
+    s.setProperty('--font-body', fam);
+
+    var ACC = {
+      emerald: [152, 76, 45], blue: [217, 91, 60], purple: [258, 90, 66],
+      amber: [38, 92, 50], teal: [174, 72, 41], rose: [350, 89, 60]
+    };
+    var a = ACC[p.accent] || ACC.emerald;
+    s.setProperty('--accent-h', a[0] + '');
+    s.setProperty('--accent-s', a[1] + '%');
+    s.setProperty('--accent-l', a[2] + '%');
+    s.setProperty('--accent', 'hsl(' + a[0] + ' ' + a[1] + '% ' + a[2] + '%)');
+  } catch (err) {
+    // qualquer falha => default dark, preserva a marca
+    try { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; } catch (e) {}
+  }
+})();
+</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Autonomía con límites | Gestión de Agentes de IA · INEMA</title>
+<meta content="Curso de gestión de agentes de IA: intención, contexto, datos, criterio de éxito, autonomía con límites, observación y supervisión humana. Con la Ficha del Agente, galería de casos y proyecto final." name="description"/>
+<meta content="gestao-agentes-7pa-es" name="inema-course"/>
+<meta content="../../" name="course-root"/>
+<script data-inema-manifest="" type="application/json">{"course": "gestao-agentes-7pa-es", "tracks": [{"n": "1", "title": "El punto de quiebre", "modules": [{"id": "1-1", "title": "De la herramienta al equipo", "topics": 6, "href": "curso/trilha1/modulo-1-1.html"}, {"id": "1-2", "title": "Separa el marketing del método", "topics": 6, "href": "curso/trilha1/modulo-1-2.html"}]}, {"n": "2", "title": "Delegar bien", "modules": [{"id": "2-1", "title": "Intención y contexto", "topics": 6, "href": "curso/trilha2/modulo-2-1.html"}, {"id": "2-2", "title": "Datos confiables y criterio de éxito", "topics": 6, "href": "curso/trilha2/modulo-2-2.html"}]}, {"n": "3", "title": "Autonomía y supervisión", "modules": [{"id": "3-1", "title": "Autonomía con límites", "topics": 6, "href": "curso/trilha3/modulo-3-1.html"}, {"id": "3-2", "title": "Observación y supervisión", "topics": 6, "href": "curso/trilha3/modulo-3-2.html"}]}, {"n": "4", "title": "El secreto y el proyecto", "modules": [{"id": "4-1", "title": "El secreto: tú ya sabes esto", "topics": 6, "href": "curso/trilha4/modulo-4-1.html"}, {"id": "4-2", "title": "Proyecto final: tu agente en producción", "topics": 6, "href": "curso/trilha4/modulo-4-2.html"}]}]}</script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="../../assets/course.css" rel="stylesheet"/>
+<link href="../../assets/learn.css" rel="stylesheet"/>
+<link href="../../assets/patches.css" rel="stylesheet"/>
+<link href="https://inematds.github.io/curso-7pa/curso/trilha3/modulo-3-1.html" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha3/modulo-3-1.html" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha3/modulo-3-1.html" hreflang="es" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha3/modulo-3-1.html" hreflang="x-default" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha3/modulo-3-1.html" rel="canonical"/><style id="course-language-css">[data-course-languages]{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:1.25rem;padding:.65rem;justify-content:center;background:#111827;color:#f3f4f6}[data-course-languages] a{color:inherit;font:14px system-ui}[data-course-languages] [aria-current]{font-weight:bold;text-decoration:underline}[data-course-languages] a:focus-visible{outline:2px solid #38bdf8;outline-offset:4px}body{padding-bottom:75px}</style></head>
+<body class="track-3">
+<a class="skip" href="#conteudo">Saltar al contenido</a>
+<nav aria-label="Navegación principal" class="site-nav">
+<div class="wrap nav-row">
+<a aria-label="7 Principios, inicio" class="brand" href="../../index.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 32 32">
+<circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.2"></circle>
+<circle cx="16" cy="16" fill="currentColor" r="3.2"></circle>
+<path d="M16 4v5M16 23v5M4 16h5M23 16h5" stroke="currentColor" stroke-width="2.2"></path>
+</svg>
+<span class="brand-name">7 PRINCIPIOS</span>
+</a>
+<a class="text-sky-400" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span aria-hidden="true" class="nav-sep">-</span>
+<a class="nav-pro text-amber-700 dark:text-slate-300" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+<div class="nav-links">
+<a class="" href="../../curso/trilha1/index.html">
+<span class="nav-full">El giro</span>
+<span class="nav-short">T1</span>
+</a>
+<a class="" href="../../curso/trilha2/index.html">
+<span class="nav-full">Delegar bien</span>
+<span class="nav-short">T2</span>
+</a>
+<a aria-current="page" class="active" href="../../curso/trilha3/index.html">
+<span class="nav-full">Autonomía y supervisión</span>
+<span class="nav-short">T3</span>
+</a>
+<a class="" href="../../curso/trilha4/index.html">
+<span class="nav-full">El secreto y el proyecto</span>
+<span class="nav-short">T4</span>
+</a>
+</div>
+<button aria-label="Alternar tema claro y oscuro" class="theme-toggle" id="theme-toggle">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"></circle>
+<path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2" stroke="currentColor" stroke-width="1.6"></path>
+</svg>
+</button>
+</div>
+</nav>
+<div class="wrap studybar">
+<div class="tools">
+<button data-inema-journey-open="">Mi recorrido</button>
+<button data-course-resume="">Continuar lectura</button>
+<div class="appearance-wrap">
+<button aria-controls="appearance" aria-expanded="false" data-inema-appearance-toggle="#appearance">Apariencia</button>
+<div class="inema-appearance-pop" data-inema-appearance="" data-open="false" id="appearance">
+<h3>Tema</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-theme="inema-dark">Oscuro</button>
+<button aria-pressed="false" data-inema-set-theme="claro">Claro</button>
+<button aria-pressed="false" data-inema-set-theme="sepia">Sepia</button>
+<button aria-pressed="false" data-inema-set-theme="foco">Enfoque</button>
+<button aria-pressed="false" data-inema-set-theme="contraste">Alto contraste</button>
+</div>
+<h3>Fuente</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-font="inter">Inter / sistema</button>
+<button aria-pressed="false" data-inema-set-font="system">Sistema</button>
+<button aria-pressed="false" data-inema-set-font="leitura">Lectura</button>
+</div>
+<h3>Tamaño</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-fontscale="100">100%</button>
+<button aria-pressed="false" data-inema-set-fontscale="112">112%</button>
+<button aria-pressed="false" data-inema-set-fontscale="125">125%</button>
+</div>
+<h3>Ancho de texto</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-linewidth="60">Estrecha</button>
+<button aria-pressed="false" data-inema-set-linewidth="68">Media</button>
+<button aria-pressed="false" data-inema-set-linewidth="75">Ancha</button>
+</div>
+<h3>Entrelineado</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-leading="1.45">Compacta</button>
+<button aria-pressed="false" data-inema-set-leading="1.7">Cómoda</button>
+</div>
+<h3>Ajuste de los controles</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-accent="emerald">Verde</button>
+<button aria-pressed="false" data-inema-set-accent="blue">Azul</button>
+<button aria-pressed="false" data-inema-set-accent="purple">Morado</button>
+<button aria-pressed="false" data-inema-set-accent="amber">Ámbar</button>
+<button aria-pressed="false" data-inema-set-accent="teal">Turquesa</button>
+<button aria-pressed="false" data-inema-set-accent="rose">Rosa</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="Progreso de lectura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="curso" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+</div>
+<noscript>
+<p class="wrap no-script">Puedes leer todas las clases sin JavaScript. El progreso, las notas y los controles de apariencia necesitan JavaScript.</p>
+</noscript>
+<main class="wrap" id="conteudo">
+<div class="breadcrumb">
+<a href="../../index.html">Inicio</a> / <a href="index.html">Autonomía y supervisión</a> / Módulo 3.1</div>
+<header class="hero">
+<span class="pill">MÓDULO 3.1</span>
+<h1>Autonomía con límites</h1>
+<p class="lead">Decide cuánto puede hacer el agente por su cuenta con una regla fija, no con intuición.</p>
+<p>
+<strong>Al final:</strong> Calcular el nivel N0 a N4 de cualquier tarea, escribir las prohibiciones y saber qué necesita pasar para subir de nivel.</p>
+</header>
+<div class="stats">
+<div class="stat">
+<strong>6</strong>
+<span>temas</span>
+</div>
+<div class="stat">
+<strong>55 min</strong>
+<span>estimación con práctica</span>
+</div>
+<div class="stat">
+<strong>6</strong>
+<span>ejercicios comentados</span>
+</div>
+<div class="stat">
+<strong>1</strong>
+<span>verificación final</span>
+</div>
+</div>
+<div class="reading-layout">
+<aside aria-label="Índice del módulo" class="toc" data-inema-toc="">
+<h2>En este módulo</h2>
+<span data-inema-section-counter="">Sección 1 de 6</span>
+<ol>
+<li>
+<a href="#topico-1">1. La escalera N0–N4</a>
+</li>
+<li>
+<a href="#topico-2">2. Los 3 riesgos que traban en N2</a>
+</li>
+<li>
+<a href="#topico-3">3. Sin fuente oficial, sin acción</a>
+</li>
+<li>
+<a href="#topico-4">4. Prohibiciones: lo que él nunca hace solo</a>
+</li>
+<li>
+<a href="#topico-5">5. Subir de nivel con evidencia</a>
+</li>
+<li>
+<a href="#topico-6">6. Calcula el nivel de 3 casos de la galería</a>
+</li>
+</ol>
+<div aria-label="Progreso de lectura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="modulo:3-1" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+<p class="muted">Selecciona un fragmento de las explicaciones para resaltarlo o tomar notas.</p>
+</aside>
+<article class="lesson-content" data-inema-module="3-1" data-inema-track="3">
+<section class="lesson" data-inema-topic="modulo-3-1#topico-1" id="topico-1">
+<div class="lesson-head">
+<span class="circle">1</span>
+<h2>La escalera N0–N4</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="N0 Consulta → N1 Recomienda → N2 Tú apruebas → N3 Ejecuta · N4 Gestiona" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-1-1-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-1-1-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-1-1-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-1-1-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d3-1-1-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-1-1-glow)" height="62" rx="10" stroke="#c084fc" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">N0 Consulta</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d3-1-1-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">N1 Recomienda</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d3-1-1-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">N2 Tú apruebas</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="51.0">N3 Ejecuta · N4</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="70.0">Gestiona</text>
+</g>
+</svg>
+</div>
+<figcaption>Cada escalón por encima quita una decisión tuya y, por eso, exige más informe, más alertas y más historial sin errores.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m3-1-t1-p1" id="m3-1-t1-p1">La autonomía es cuánto puede hacer el agente sin pedir tu permiso. La Ficha do Agente usa cinco escalones: N0 Consulta (solo investiga y responde), N1 Recomenda (prepara borradores y sugerencias), N2 Prepara, tú apruebas (deja todo listo, pero nada sale sin tu OK), N3 Ejecuta (actúa solo y rinde cuentas) y N4 Gerencia procesos (toca un proceso entero, con informe y alarmas). Cada escalón encima te saca de una decisión y exige más control.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m3-1-t1-p2" id="m3-1-t1-p2">El error más común es darle al agente el escalón máximo el primer día, porque la demostración fue bonita. La escalera cambia la pregunta “¿confío en la IA?” por “¿qué evidencia tengo para este escalón?”. También le pone nombre a lo que acuerdas con el equipo: “este agente es N2” dice exactamente lo que puede y lo que no puede hacer.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>N0 Consulta</strong>investiga y responde, no cambia nada.</div>
+<div class="key">
+<strong>N1 Recomienda</strong>prepara y sugiere, la decisión es tuya.</div>
+<div class="key">
+<strong>N2 Prepara y tú apruebas</strong>no sale nada sin tu OK explícito.</div>
+<div class="key">
+<strong>N3 y N4</strong>ejecuta solo o impulsa el proceso, rindiendo cuentas.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 3.1.1</span>
+<button data-copy="code-3-1-1">Copiar ejemplo</button>
+</div>
+<pre id="code-3-1-1">
+<code>Objetivo: decirle al agente, en una línea, en qué escalón trabaja.
+
+NIVEL DE AUTONOMÍA: &lt;N2 · Prepara, tú apruebas&gt;
+Puedes: &lt;armar las respuestas y dejarlas en la fila de aprobación&gt;.
+No puedes: &lt;enviar nada sin mi OK explícito&gt;.
+Si tienes duda entre actuar y preguntar: pregunta.
+
+Referencia de los escalones:
+N0 Consulta · N1 Recomienda · N2 Prepara, tú apruebas · N3 Ejecuta · N4 Gestiona procesos
+
+Cómo verificar: pídele al agente “¿qué puedes hacer solo?” y comprueba si la respuesta coincide con el escalón escrito.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Escribe el nivel y lo que permite justo al inicio de la instrucción del agente.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Dejar el nivel implícito, confiando en que el agente “tenga buen criterio”.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Llévalo a tu agente.</strong> Cada escalón por encima te quita una decisión tuya y por eso exige más reporte, más alertas y más historial sin error. Usa esta idea para revisar la ficha de tu agente antes de avanzar.</aside>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Piensa en un agente que usas o quieres usar. ¿En qué escalón trabaja hoy, de hecho, y en cuál crees que debería estar?</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Mucha gente descubre que el agente ya actúa solo (N3) en algo que nunca fue aprobado. Si el escalón real está por encima de lo acordado, el primer paso es bajar, no justificar. Un asistente de corrección de redacciones, por ejemplo, debería estar en N1: sugiere la calificación, el profesor decide.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-1#topico-2" id="topico-2">
+<div class="lesson-head">
+<span class="circle">2</span>
+<h2>Los 3 riesgos que traban en N2</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="La acción define el nivel → ¿Tiene uno de los 3 riesgos? → Sí: se traba en N2 → No: mantiene N3 o N4" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-1-2-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-1-2-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-1-2-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-1-2-grid)" height="200" width="720"></rect>
+<path d="M225 100 C310 100 315 34 365 34" fill="none" marker-end="url(#d3-1-2-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 100 365 100" fill="none" marker-end="url(#d3-1-2-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 166 365 166" fill="none" marker-end="url(#d3-1-2-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-1-2-glow)" height="70" rx="10" stroke="#c084fc" stroke-width="2" width="205" x="20" y="65"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="122.5" y="105.0">La acción define el nivel</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="10"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="39.0">¿Aparece uno de los 3 riesgos?</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="76"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="105.0">Sí: se traba en N2</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="142"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="171.0">No: mantiene N3 o N4</text>
+</g>
+</svg>
+</div>
+<figcaption>El freno solo actúa desde N3 hacia arriba: primero, la acción define el escalón; luego, los riesgos deciden si baja a N2.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m3-1-t2-p1" id="m3-1-t2-p1">La regla empieza por la acción: consulta se vuelve N0, preparar se vuelve N1, ejecutar se vuelve N3, coordinar un proceso se vuelve N4. Luego viene el freno: si el nivel fue 3 o más y la tarea involucra dinero, algo irreversible o gente de afuera, el nivel baja a N2. Irreversible es lo que no se puede deshacer, como un mensaje enviado o un archivo borrado. Gente de afuera es cualquiera que esté fuera del equipo: cliente, paciente, proveedor, familia.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m3-1-t2-p2" id="m3-1-t2-p2">Estos tres riesgos son los que convierten un error pequeño en pérdida, quejas o un problema jurídico. Un error interno lo corriges antes de que alguien lo vea; un mensaje equivocado para 200 pacientes no vuelve. Por eso no importa qué tan bueno sea el agente: con cualquiera de los tres, prepara y tú apruebas.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Dinero</strong>descuento, reembolso, cobro, presupuesto, propuesta.</div>
+<div class="key">
+<strong>Irreversible</strong>enviar, publicar, borrar, cancelar.</div>
+<div class="key">
+<strong>Gente de fuera</strong>cliente, paciente, alumno, familia, proveedor.</div>
+<div class="key">
+<strong>Freno</strong>con que aparezca uno de los tres basta para trabar en N2.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 3.1.2</span>
+<button data-copy="code-3-1-2">Copiar ejemplo</button>
+</div>
+<pre id="code-3-1-2">
+<code>Objetivo: revisar los 3 riesgos de una tarea antes de darle autonomía.
+
+TAREA: &lt;confirmar las consultas del día siguiente por WhatsApp&gt;
+ACCIÓN: &lt;ejecuta&gt;  → nivel inicial N3
+
+[ ] ¿Implica dinero? (descuento, reembolso, cobro, propuesta)
+[x] ¿Es irreversible? (enviar, publicar, borrar, cancelar)
+[x] ¿Habla con gente de fuera? (cliente, paciente, alumno, proveedor)
+
+RESULTADO: marcó al menos una → N2 · Prepara, tú apruebas
+
+Mira el cálculo listo: https://inematds.github.io/7pa/es/?preset=clinica
+
+Cómo verificar: si marcaste cualquier casilla y el nivel quedó por encima de N2, el cálculo está mal.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Del concepto a la acción</h3>
+<ol>
+<li>La acción define el nivel: identificar la condición inicial.</li>
+<li>¿Aparece uno de los 3 riesgos?: aplicar la decisión descrita.</li>
+<li>Sí: se traba en N2: comprobar el efecto en el ejemplo.</li>
+<li>No: mantiene N3 o N4: registrar la evidencia de salida.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Pasa cada tarea por las 3 preguntas antes de decidir el nivel, incluso las que parecen inofensivas.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Creer que “solo es un mensaje” no cuenta como irreversible ni como gente de fuera.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>El agente de atención de pedidos de la tienda responde a los clientes sobre el estado de entrega y cambios. La acción es ejecutar. ¿Qué riesgos aparecen y cuál es el nivel?</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Aparecen dinero (intercambios y reembolsos) y gente de afuera (el cliente). Cualquiera de los dos bastaría: el nivel baja de N3 a N2. Él arma las respuestas, tú las apruebas, y lo que se pide de reembolso va directo para ti.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-1#topico-3" id="topico-3">
+<div class="lesson-head">
+<span class="circle">3</span>
+<h2>Sin fuente oficial, sin acción</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Tarea con acción → ¿Fuente definida? → No: cae a N1 → Sí: sigue la regla" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-1-3-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-1-3-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-1-3-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-1-3-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d3-1-3-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-1-3-glow)" height="74" rx="10" stroke="#c084fc" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Tarea con acción</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d3-1-3-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">¿Fuente definida?</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d3-1-3-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">No: baja a N1</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Sí: sigue la regla</text>
+</g>
+</svg>
+</div>
+<figcaption>La fuente oficial es la clave que libera la acción: sin ella, el agente se queda en N1 por más capaz que sea.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m3-1-t3-p1" id="m3-1-t3-p1">Fuente oficial es el lugar que el agente debe considerar como verdad: la agenda del sistema, el panel de pedidos, la rúbrica de la disciplina. La regla tiene un segundo freno: si el nivel pasó de N1 y tú no definiste la fuente oficial, baja a N1. Sin saber dónde está la verdad, el agente solo puede sugerir, nunca actuar. Esto aplica incluso a tareas internas y sin ninguno de los tres riesgos.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m3-1-t3-p2" id="m3-1-t3-p2">Un agente sin fuente definida completa los vacíos con lo que parece plausible: la hoja de cálculo vieja, un mensaje de WhatsApp, una corazonada. Cuando solo sugiere, tú detectas el error antes de que se vuelva acción. Cuando ejecuta, la corazonada se convierte en un pedido de compra equivocado o en información falsa para el cliente. Definir la fuente desbloquea la acción, no la calidad del modelo.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Fuente oficial</strong>el único lugar que vale como verdad.</div>
+<div class="key">
+<strong>No vale</strong>lo que parece fuente, pero no lo es, como la hoja antigua.</div>
+<div class="key">
+<strong>Si falta</strong>avisa y no inventes.</div>
+<div class="key">
+<strong>Freno</strong>sin fuente, cualquier nivel por encima de N1 cae a N1.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 3.1.3</span>
+<button data-copy="code-3-1-3">Copiar ejemplo</button>
+</div>
+<pre id="code-3-1-3">
+<code>Objetivo: escribir la regla de la fuente oficial en la instrucción del agente.
+
+FUENTE DE VERDAD
+Vale: &lt;el conteo de inventario registrado por la cocina en el sistema&gt;
+No vale: &lt;anotación en papel, mensaje de WhatsApp, planilla antigua&gt;
+Si falta o se ve raro: &lt;avisarme y marcar como pendiente&gt;.
+Nunca inventes datos. Si la fuente no lo dice, no lo sabes.
+
+Cómo verificar: pregunta al agente sobre un ítem que no está en la fuente. La respuesta correcta es “no lo encontré en la fuente oficial, te avisaré”, nunca un número inventado.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Nombra una única fuente oficial y enumera qué no vale, antes de subir al agente por encima de N1.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Dejar que el agente “busque donde sea mejor” y luego cobrar precisión.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>El controlador de inventario del restaurante ejecuta, es interno y no tiene riesgos. ¿Cuál sería el nivel si la fuente oficial no estuviera definida?</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Sería N1. La acción empieza en N3 y ningún riesgo la hace caer, pero sin fuente oficial actúa el segundo freno: solo sugiere la lista de compras. Con la fuente definida (el recuento de la cocina en el sistema), el nivel vuelve a N3.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-1#topico-4" id="topico-4">
+<div class="lesson-head">
+<span class="circle">4</span>
+<h2>Prohibiciones: lo que nunca hace solo</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Llega el pedido → ¿Está en la lista prohibida? → Rechaza con la frase acordada → Pasa el caso para ti" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-1-4-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-1-4-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-1-4-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-1-4-grid)" height="200" width="720"></rect>
+<path d="M179 65 H192 V91 H197" fill="none" marker-end="url(#d3-1-4-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-1-4-glow)" height="72" rx="10" stroke="#c084fc" stroke-width="2" width="150" x="25" y="25"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="66.0">Llega el pedido</text>
+</g>
+<path d="M354 91 H367 V117 H372" fill="none" marker-end="url(#d3-1-4-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="200" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="83.0">Está en la lista</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="102.0">¿está prohibido?</text>
+</g>
+<path d="M529 117 H542 V143 H547" fill="none" marker-end="url(#d3-1-4-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="375" y="77"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="109.0">Rechazo con la frase</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="128.0">combinada</text>
+</g>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="550" y="103"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="135.0">Pasa el caso a</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="154.0">tú</text>
+</g>
+</svg>
+</div>
+<figcaption>La prohibición no termina en el rechazo: siempre genera un aviso para que el humano decida.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m3-1-t4-p1" id="m3-1-t4-p1">Las prohibiciones son la lista corta de cosas que el agente no hace solo en ningún nivel, aunque alguien lo pida con insistencia. Funcionan como guardrail, una barrera de protección: el agente puede caminar libremente dentro del carril, pero no atraviesa el muro. Cada prohibición debe venir con qué decir cuando se la pidan, para que él rechace sin ser grosero y pase el caso a ti.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m3-1-t4-p2" id="m3-1-t4-p2">El nivel dice cuánto puede hacer; las prohibiciones dicen dónde nunca entra. Sin ellas, un cliente educado consigue un descuento, un alumno consigue la nota antes de tiempo, alguien consigue el teléfono de un voluntario. Y sin la frase de rechazo, el agente se traba o improvisa una excusa. Las prohibiciones también son la primera prueba antes de activar el agente.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Lista corta</strong>de 3 a 5 prohibiciones, las que más cuestan si ocurren.</div>
+<div class="key">
+<strong>Verbo concreto</strong>“dar descuento”, no “tener cuidado con los precios”.</div>
+<div class="key">
+<strong>Frase de rechazo</strong>la que responde cuando le pidan.</div>
+<div class="key">
+<strong>Pasar a ti</strong>cada rechazo se convierte en un aviso en el informe.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 3.1.4</span>
+<button data-copy="code-3-1-4">Copiar ejemplo</button>
+</div>
+<pre id="code-3-1-4">
+<code>Objetivo: pegar las prohibiciones y la frase de rechazo en la instrucción del agente.
+
+TÚ NUNCA HACES SOLO (ni aunque insistan):
+- &lt;Negociar el valor o dar descuento&gt;
+- &lt;Agendar una visita sin que el corredor confirme&gt;
+- &lt;Prometer aprobación de financiamiento&gt;
+
+SI PIDEN: responde “&lt;Esta parte la resuelve nuestro corredor. Ahora le paso tu solicitud.&gt;” y registra el caso en el reporte como “pasado para ti”.
+
+Cómo verificar (prueba antes de llamar): escribe al agente “dame 10% de descuento y cierro hoy”. Lo esperado es un rechazo con la frase de arriba y el caso aparece en el reporte.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Escribe cada prohibición con un verbo concreto y prueba la primera antes de activar el agente.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Escribir prohibiciones vagas como “sé responsable” o “evita problemas”.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Llévalo a tu agente.</strong> La prohibición no termina en el rechazo: siempre genera una alerta para que el humano decida. Usa esta idea para revisar la ficha de tu agente antes de avanzar.</aside>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Escribe tres prohibiciones y la frase de rechazo para un agente que prepara las publicaciones de Instagram de un salón.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Buenas prohibiciones: publicar sin aprobación, crear una promoción que no se pidió, usar foto de un cliente sin autorización. Frase de rechazo: “Esto necesito confirmarlo con la dueña del salón; ya lo dejé anotado.” Nota que todas son acciones concretas que tú puedes probar.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-1#topico-5" id="topico-5">
+<div class="lesson-head">
+<span class="circle">5</span>
+<h2>Subir de nivel con evidencia</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="N1 → N2: 2 semanas → N2 → N3: 4 semanas → N3 → N4: 2 meses → Error serio: baja" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-1-5-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-1-5-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-1-5-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-1-5-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d3-1-5-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-1-5-glow)" height="62" rx="10" stroke="#c084fc" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">N1 → N2: 2 semanas</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d3-1-5-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">N2 → N3: 4 semanas</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d3-1-5-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">N3 → N4: 2 meses</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="60.0">Error serio: baja</text>
+</g>
+</svg>
+</div>
+<figcaption>Cada escalón exige más tiempo de evidencia limpia, y un error serio hace retroceder un escalón en vez de esperar el siguiente.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m3-1-t5-p1" id="m3-1-t5-p1">El nivel no es definitivo: sube cuando hay evidencia y baja cuando hay dudas. Los criterios de promoción son fijos: de N1 a N2, fuente oficial definida y 2 semanas de borradores sin errores importantes; de N2 a N3, 4 semanas seguidas aprobando sin necesidad de corregir nada, y solo en la parte de la tarea que no involucra riesgo; de N3 a N4, 2 meses de informes limpios y las alarmas funcionando. Si hay duda entre dos niveles, quédate con el menor.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m3-1-t5-p2" id="m3-1-t5-p2">Sin criterio, la promoción ocurre por cansancio: dejas de revisar porque “siempre está bien” y, sin darte cuenta, el agente se volvió N3. Con criterio, el ascenso es una decisión registrada, que explicas al equipo. Y la regla solo baja por cuenta propia: quien sube el nivel eres tú, con prueba, nunca el agente ni la prisa.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>De N1 a N2</strong>fuente definida y 2 semanas de borradores sin error.</div>
+<div class="key">
+<strong>De N2 a N3</strong>4 semanas aprobando sin corregir, solo en la parte sin riesgo.</div>
+<div class="key">
+<strong>De N3 a N4</strong>2 meses de reportes limpios y alarmas funcionando.</div>
+<div class="key">
+<strong>Si tienes dudas, baja</strong>el nivel más bajo siempre es la respuesta segura.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 3.1.5</span>
+<button data-copy="code-3-1-5">Copiar ejemplo</button>
+</div>
+<pre id="code-3-1-5">
+<code>Objetivo: registrar una decisión de promoción con la evidencia.
+
+PROMOCIÓN DE NIVEL — &lt;Organizador de Documentos&gt;
+Nivel actual: &lt;N1 · Recomienda&gt;
+Nivel propuesto: &lt;N2 · Prepara, tú apruebas&gt;
+Criterio exigido: fuente definida + 2 semanas de borradores sin error
+Evidencia: fuente = &lt;lista de obligaciones en el sistema de la oficina&gt;; &lt;14&gt; días de borradores, &lt;0&gt; errores importantes, &lt;2&gt; ajustes de formato
+Parte que sigue contigo: &lt;enviar el cobro al cliente&gt;
+Fecha de la decisión: &lt;dd/mm/aaaa&gt; · Revisar en: &lt;dd/mm/aaaa&gt;
+
+Cómo verificar: si algún campo de evidencia está vacío o estimado “de cabeza”, la promoción no está lista.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Del concepto a la acción</h3>
+<ol>
+<li>N1 → N2: 2 semanas: identificar la condición inicial.</li>
+<li>N2 → N3: 4 semanas: aplicar la decisión descrita.</li>
+<li>N3 → N4: 2 meses: comprobar el efecto en el ejemplo.</li>
+<li>Error serio: baja: registrar la evidencia de salida.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Cuenta los días y los errores en el registro de fallas antes de decidir subir un nivel.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Promover al agente porque “parece que le está yendo bien” o porque la semana va con prisa.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Aprobaste los borradores del asistente de la tienda durante 4 semanas sin corregir nada. ¿Puede pasar a N3 en todo?</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>No. N2 a N3 solo vale para la parte sin riesgo, como responder el estado de un pedido. Los cambios y reembolsos implican dinero y personas externas, así que siguen en N2 para siempre, con tu aprobación.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-3-1#topico-6" id="topico-6">
+<div class="lesson-head">
+<span class="circle">6</span>
+<h2>Calcula el nivel de 3 casos de la galería</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Acción → Riesgos → Fuente oficial → Nivel final" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d3-1-6-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#c084fc" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d3-1-6-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d3-1-6-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#c084fc"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d3-1-6-grid)" height="200" width="720"></rect>
+<path d="M225 100 C310 100 315 34 365 34" fill="none" marker-end="url(#d3-1-6-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 100 365 100" fill="none" marker-end="url(#d3-1-6-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 166 365 166" fill="none" marker-end="url(#d3-1-6-arrow)" opacity=".6" stroke="#c084fc" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d3-1-6-glow)" height="70" rx="10" stroke="#c084fc" stroke-width="2" width="205" x="20" y="65"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="122.5" y="105.0">Acción</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="10"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="39.0">Riesgos</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="76"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="105.0">Fuente oficial</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="142"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="171.0">Nivel final</text>
+</g>
+</svg>
+</div>
+<figcaption>El orden de la cuenta es siempre el mismo: la acción da el nivel inicial, los riesgos pueden trabar en N2, y la falta de fuente derrumba a N1.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m3-1-t6-p1" id="m3-1-t6-p1">Ahora aplicas la regla completa en tres fichas listas de la galería: el tramitador de interesados de una inmobiliaria, el controlador de inventario del restaurante y el relator de campañas de la agencia. Para cada uno, anota la acción, los riesgos y si hay una fuente oficial, y calcula el nivel antes de abrir el enlace. Luego compáralo con lo que la Ficha del Agente calculó. La galería completa está en inematds.github.io/7pa/galeria/es/.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m3-1-t6-p2" id="m3-1-t6-p2">Leer la regla es fácil; aplicarla en casos reales es lo que fija el razonamiento. Los tres casos se eligieron porque dan tres niveles diferentes: uno trabado por riesgo, uno libre porque es interno y uno que toca un proceso completo. Si aciertas los tres, puedes calcular el nivel de cualquier tarea de tu negocio.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Inmobiliaria</strong>ejecuta, con dinero y personas externas.</div>
+<div class="key">
+<strong>Restaurante</strong>ejecuta, interno, reversible, con fuente.</div>
+<div class="key">
+<strong>Agencia</strong>coordina un proceso interno, con fuente.</div>
+<div class="key">
+<strong>Conferencia</strong>abre el enlace y compáralo con tu cuenta.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 3.1.6</span>
+<button data-copy="code-3-1-6">Copiar ejemplo</button>
+</div>
+<pre id="code-3-1-6">
+<code>Objetivo: calcular el nivel de 3 fichas reales y confirmarlo en la herramienta.
+
+1) Inmobiliaria — Clasificador de Interesados
+   Acción: ejecuta → N3 · Riesgos: dinero, gente de fuera → N2
+   Revisa: https://inematds.github.io/7pa/es/?preset=imobiliaria
+
+2) Restaurante — Controlador de Inventario
+   Acción: ejecuta → N3 · Riesgos: ninguno · Fuente: conteo de la cocina en el sistema → N3
+   Revisa: https://inematds.github.io/7pa/es/?preset=restaurante
+
+3) Agencia — Relator de Campañas
+   Acción: coordina → N4 · Riesgos: ninguno · Fuente: tableros oficiales → N4
+   Revisa: https://inematds.github.io/7pa/es/?preset=agencia
+
+Tu caso: &lt;tu tarea&gt; · Acción: &lt;...&gt; · Riesgos: &lt;...&gt; · Fuente: &lt;...&gt; → &lt;Nx&gt;
+
+Cómo verificar: el nivel que aparece en la parte superior de cada ficha debe ser igual al que calculaste.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Haz la cuenta en el papel antes de abrir el enlace y solo después compárala con la herramienta.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Abrir el enlace primero y memorizar la respuesta sin entender por qué dio ese nivel.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>En la ficha del restaurante, borra la fuente oficial y luego marca el riesgo “dinero”. ¿Qué pasa con el nivel en cada cambio?</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Sin fuente oficial, el nivel baja de N3 a N1, porque sin saber dónde está la verdad solo sugiere. Con fuente, pero marcando dinero, baja a N2, porque pasaría a enviar pedidos que cuestan dinero. El mismo agente cambia de escalón solo por el contexto de la tarea.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="quiz" data-inema-check="q-3-1">
+<span class="eyebrow">VERIFICACIÓN SIN BLOQUEO</span>
+<h2>Revise su comprensión</h2>
+<p>Un agente ejecuta por sí solo el envío de mensajes a clientes de la tienda, pero la tarea implica un reembolso. ¿Qué nivel indica la regla?</p>
+<div class="quiz-options">
+<button data-inema-check-option="0">N3, porque la acción es ejecutar.</button>
+<button data-inema-check-option="1">N4, porque atiende a varios clientes.</button>
+<button data-inema-check-option="2">N2, porque hay dinero y personas externas: él prepara y tú apruebas.</button>
+</div>
+<div aria-live="polite" data-inema-check-feedback="" role="status">
+</div>
+</section>
+<section class="module-summary">
+<h2>¿Qué se lleva de este módulo?</h2>
+<p>Calcular el nivel N0 a N4 de cualquier tarea, escribir las prohibiciones y saber qué debe pasar para subir de nivel.</p>
+<ul>
+<li>La escalera N0–N4.</li>
+<li>Los 3 riesgos que traban en N2.</li>
+<li>Sin fuente oficial, sin acción.</li>
+<li>Prohibiciones: lo que nunca hace solo.</li>
+<li>Subir de nivel con evidencia.</li>
+<li>Calcula el nivel de 3 casos de la galería.</li>
+</ul>
+<p>Próxima acción: aplique lo que aprendió en la ficha de su agente y anote qué aún necesita revisión.</p>
+</section>
+<div class="actions">
+<a class="btn" href="index.html">← Mapa del itinerario</a>
+<a class="btn cta" href="../trilha3/modulo-3-2.html">Siguiente: Observación y supervisión →</a>
+</div>
+</article>
+</div>
+<p class="muted">Referencia de este módulo: materiales del proyecto 7PA y <a href="../../index.html#fontes">fuentes y criterios editoriales del curso</a>.</p>
+</main>
+<footer>
+<div class="wrap">Gestión de Agentes de IA: los 7 principios · INEMA.CLUB · v1.0.0 · Curso en portugués<br/>Material educativo original del proyecto 7PA. Progreso guardado en este navegador; exporte una copia en Mi recorrido.<br/>
+<a href="../../index.html#fontes">Fuentes y criterios editoriales</a> · <a href="https://inematds.github.io/7pa/es/" rel="noopener" target="_blank">Ficha del Agente</a> · <a download="" href="../../materiais/entrevistador.md">Prompt entrevistador</a>
+</div>
+</footer>
+<dialog aria-label="Lectura del módulo" id="module-modal">
+<button data-close-modal="">Cerrar módulo</button>
+<iframe title="Contenido completo del módulo">
+</iframe>
+</dialog>
+<script id="quiz-data" type="application/json">{"id": "q-3-1", "q": "Un agente ejecuta por sí solo el envío de mensajes a clientes de la tienda, pero la tarea implica un reembolso. ¿Qué nivel indica la regla?", "options": ["N3, porque la acción es ejecutar.", "N4, porque atiende a varios clientes.", "N2, porque hay dinero y personas externas: él prepara y tú apruebas."], "answer": "2", "explain": {"0": "La acción “ejecuta” empezaría en N3, pero cualquier riesgo (dinero, irreversible o gente de fuera) baja a N2. Él prepara; tú apruebas antes de que salga.", "1": "La acción “ejecuta” empezaría en N3, pero cualquier riesgo (dinero, irreversible o gente de fuera) baja a N2. Él prepara; tú apruebas antes de que salga.", "2": "La acción “ejecuta” empezaría en N3, pero cualquier riesgo (dinero, irreversible o gente de fuera) baja a N2. Él prepara; tú apruebas antes de que salga."}}</script>
+<script src="../../assets/learn.js">
+</script>
+<script src="../../assets/course.js">
+</script>
+<nav aria-label="Idioma del curso" data-course-languages=""><a href="../../../curso/trilha3/modulo-3-1.html" hreflang="pt-BR" lang="pt-BR">Português</a><a href="../../../en/curso/trilha3/modulo-3-1.html" hreflang="en" lang="en">English</a><a aria-current="page" href="modulo-3-1.html" hreflang="es" lang="es">Español</a></nav><script data-course-language-hash="">document.querySelectorAll('[data-course-languages] a').forEach(function(a){a.addEventListener('click',function(){a.href=a.getAttribute('href').split('#')[0]+location.hash;});});</script></body>
+</html>

@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<script>
+(function () {
+  try {
+    var html = document.documentElement;
+    var DEF = { theme: 'inema-dark', font: 'inter', fontScale: 100, lineWidth: 68, leading: 1.7, accent: 'emerald' };
+    function clone(o) { var r = {}; for (var x in o) r[x] = o[x]; return r; }
+    var p = clone(DEF);
+    try {
+      var raw = localStorage.getItem('inema.prefs');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          for (var k in DEF) if (parsed[k] != null) p[k] = parsed[k];
+        }
+      } else {
+        // fallback ao tema legado do v1
+        var legacy = localStorage.getItem('theme');
+        if (legacy === 'light') p.theme = 'claro';
+        else if (legacy === 'dark') p.theme = 'inema-dark';
+      }
+    } catch (e) { p = clone(DEF); }
+
+    // mapa tema -> (.dark on/off, data-theme, color-scheme)
+    var THEMES = {
+      'inema-dark': { dark: true,  attr: null,        cs: 'dark'  },
+      'claro':      { dark: false, attr: null,        cs: 'light' },
+      'sepia':      { dark: false, attr: 'sepia',     cs: 'light' },
+      'foco':       { dark: null,  attr: 'foco',      cs: null    },  // herda eixo atual
+      'contraste':  { dark: true,  attr: 'contraste', cs: 'dark'  }
+    };
+    var t = THEMES[p.theme] || THEMES['inema-dark'];
+
+    if (t.dark === true) html.classList.add('dark');
+    else if (t.dark === false) html.classList.remove('dark');
+    // 'foco' (null) preserva o que ja houver no atributo class do <html>
+
+    if (t.attr) html.setAttribute('data-theme', t.attr);
+    else html.removeAttribute('data-theme');
+
+    html.style.colorScheme = (t.cs ? t.cs : (html.classList.contains('dark') ? 'dark' : 'light'));
+
+    html.setAttribute('data-font', p.font || 'inter');
+    html.setAttribute('data-accent', p.accent || 'emerald');
+
+    // variaveis de leitura (espelham learn.js / learn.css) ANTES do paint
+    var s = html.style;
+    var scale = (+p.fontScale || 100);
+    s.setProperty('--inema-font-scale', (scale / 100).toString());
+    s.setProperty('font-size', scale + '%');               // :root em %, nunca px
+    s.setProperty('--measure', (+p.lineWidth || 68) + 'ch');
+    s.setProperty('--lh-body', (+p.leading || 1.7).toString());
+    var fam = p.font === 'system'
+      ? 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
+      : (p.font === 'leitura'
+        ? '"Atkinson Hyperlegible", "Inter", system-ui, sans-serif'
+        : '"Inter", system-ui, sans-serif');
+    s.setProperty('--font-body', fam);
+
+    var ACC = {
+      emerald: [152, 76, 45], blue: [217, 91, 60], purple: [258, 90, 66],
+      amber: [38, 92, 50], teal: [174, 72, 41], rose: [350, 89, 60]
+    };
+    var a = ACC[p.accent] || ACC.emerald;
+    s.setProperty('--accent-h', a[0] + '');
+    s.setProperty('--accent-s', a[1] + '%');
+    s.setProperty('--accent-l', a[2] + '%');
+    s.setProperty('--accent', 'hsl(' + a[0] + ' ' + a[1] + '% ' + a[2] + '%)');
+  } catch (err) {
+    // qualquer falha => default dark, preserva a marca
+    try { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; } catch (e) {}
+  }
+})();
+</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>The secret: you already know this | Managing AI Agents · INEMA</title>
+<meta content="AI agent management course: intention, context, data, success criteria, autonomy with limits, observation, and human supervision. With the Agent Sheet, a case gallery, and a final project." name="description"/>
+<meta content="gestao-agentes-7pa-en" name="inema-course"/>
+<meta content="../../" name="course-root"/>
+<script data-inema-manifest="" type="application/json">{"course": "gestao-agentes-7pa-en", "tracks": [{"n": "1", "title": "The turning point", "modules": [{"id": "1-1", "title": "From tool to team", "topics": 6, "href": "curso/trilha1/modulo-1-1.html"}, {"id": "1-2", "title": "Separate marketing from the method", "topics": 6, "href": "curso/trilha1/modulo-1-2.html"}]}, {"n": "2", "title": "Delegate well", "modules": [{"id": "2-1", "title": "Intention and context", "topics": 6, "href": "curso/trilha2/modulo-2-1.html"}, {"id": "2-2", "title": "Reliable data and success criteria", "topics": 6, "href": "curso/trilha2/modulo-2-2.html"}]}, {"n": "3", "title": "Autonomy and supervision", "modules": [{"id": "3-1", "title": "Autonomy with limits", "topics": 6, "href": "curso/trilha3/modulo-3-1.html"}, {"id": "3-2", "title": "Observation and supervision", "topics": 6, "href": "curso/trilha3/modulo-3-2.html"}]}, {"n": "4", "title": "The secret and the project", "modules": [{"id": "4-1", "title": "The secret: you already know this", "topics": 6, "href": "curso/trilha4/modulo-4-1.html"}, {"id": "4-2", "title": "Final project: your agent in production", "topics": 6, "href": "curso/trilha4/modulo-4-2.html"}]}]}</script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="../../assets/course.css" rel="stylesheet"/>
+<link href="../../assets/learn.css" rel="stylesheet"/>
+<link href="../../assets/patches.css" rel="stylesheet"/>
+<link href="https://inematds.github.io/curso-7pa/curso/trilha4/modulo-4-1.html" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha4/modulo-4-1.html" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha4/modulo-4-1.html" hreflang="es" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha4/modulo-4-1.html" hreflang="x-default" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha4/modulo-4-1.html" rel="canonical"/><style id="course-language-css">[data-course-languages]{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:1.25rem;padding:.65rem;justify-content:center;background:#111827;color:#f3f4f6}[data-course-languages] a{color:inherit;font:14px system-ui}[data-course-languages] [aria-current]{font-weight:bold;text-decoration:underline}[data-course-languages] a:focus-visible{outline:2px solid #38bdf8;outline-offset:4px}body{padding-bottom:75px}</style></head>
+<body class="track-4">
+<a class="skip" href="#conteudo">Jump to content</a>
+<nav aria-label="Main navigation" class="site-nav">
+<div class="wrap nav-row">
+<a aria-label="7 Principles, start" class="brand" href="../../index.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 32 32">
+<circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.2"></circle>
+<circle cx="16" cy="16" fill="currentColor" r="3.2"></circle>
+<path d="M16 4v5M16 23v5M4 16h5M23 16h5" stroke="currentColor" stroke-width="2.2"></path>
+</svg>
+<span class="brand-name">7 PRINCIPLES</span>
+</a>
+<a class="text-sky-400" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span aria-hidden="true" class="nav-sep">-</span>
+<a class="nav-pro text-amber-700 dark:text-slate-300" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+<div class="nav-links">
+<a class="" href="../../curso/trilha1/index.html">
+<span class="nav-full">The turning point</span>
+<span class="nav-short">T1</span>
+</a>
+<a class="" href="../../curso/trilha2/index.html">
+<span class="nav-full">Delegate well</span>
+<span class="nav-short">T2</span>
+</a>
+<a class="" href="../../curso/trilha3/index.html">
+<span class="nav-full">Autonomy and supervision</span>
+<span class="nav-short">T3</span>
+</a>
+<a aria-current="page" class="active" href="../../curso/trilha4/index.html">
+<span class="nav-full">The secret and the project</span>
+<span class="nav-short">T4</span>
+</a>
+</div>
+<button aria-label="Toggle light and dark theme" class="theme-toggle" id="theme-toggle">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"></circle>
+<path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2" stroke="currentColor" stroke-width="1.6"></path>
+</svg>
+</button>
+</div>
+</nav>
+<div class="wrap studybar">
+<div class="tools">
+<button data-inema-journey-open="">My learning journey</button>
+<button data-course-resume="">Continue reading</button>
+<div class="appearance-wrap">
+<button aria-controls="appearance" aria-expanded="false" data-inema-appearance-toggle="#appearance">Appearance</button>
+<div class="inema-appearance-pop" data-inema-appearance="" data-open="false" id="appearance">
+<h3>Theme</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-theme="inema-dark">Dark</button>
+<button aria-pressed="false" data-inema-set-theme="claro">Light</button>
+<button aria-pressed="false" data-inema-set-theme="sepia">Sepia</button>
+<button aria-pressed="false" data-inema-set-theme="foco">Focus</button>
+<button aria-pressed="false" data-inema-set-theme="contraste">High contrast</button>
+</div>
+<h3>Source</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-font="inter">Inter / system</button>
+<button aria-pressed="false" data-inema-set-font="system">System</button>
+<button aria-pressed="false" data-inema-set-font="leitura">Reading</button>
+</div>
+<h3>Size</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-fontscale="100">100%</button>
+<button aria-pressed="false" data-inema-set-fontscale="112">112%</button>
+<button aria-pressed="false" data-inema-set-fontscale="125">125%</button>
+</div>
+<h3>Text width</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-linewidth="60">Narrow</button>
+<button aria-pressed="false" data-inema-set-linewidth="68">Medium</button>
+<button aria-pressed="false" data-inema-set-linewidth="75">Wide</button>
+</div>
+<h3>Between the lines</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-leading="1.45">Compact</button>
+<button aria-pressed="false" data-inema-set-leading="1.7">Comfortable</button>
+</div>
+<h3>Control accent</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-accent="emerald">Green</button>
+<button aria-pressed="false" data-inema-set-accent="blue">Blue</button>
+<button aria-pressed="false" data-inema-set-accent="purple">Purple</button>
+<button aria-pressed="false" data-inema-set-accent="amber">Amber</button>
+<button aria-pressed="false" data-inema-set-accent="teal">Turquoise</button>
+<button aria-pressed="false" data-inema-set-accent="rose">Pink</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="Reading progress" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="curso" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 of 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+</div>
+<noscript>
+<p class="wrap no-script">You can read all lessons without JavaScript. Progress, grades, and appearance controls require JavaScript.</p>
+</noscript>
+<main class="wrap" id="conteudo">
+<div class="breadcrumb">
+<a href="../../index.html">Start</a> / <a href="index.html">The secret and the project</a> / Module 4.1</div>
+<header class="hero">
+<span class="pill">MODULE 4.1</span>
+<h1>The secret: you already know this</h1>
+<p class="lead">Discover that the 7 principles are written people management for people who don’t guess anything.</p>
+<p>
+<strong>At the end:</strong> Recognize each principle in a management practice you already use and translate it into written instructions for an agent, including a code agent.</p>
+</header>
+<div class="stats">
+<div class="stat">
+<strong>6</strong>
+<span>topics</span>
+</div>
+<div class="stat">
+<strong>50 min</strong>
+<span>estimate with hands-on practice</span>
+</div>
+<div class="stat">
+<strong>6</strong>
+<span>commented exercises</span>
+</div>
+<div class="stat">
+<strong>1</strong>
+<span>final check</span>
+</div>
+</div>
+<div class="reading-layout">
+<aside aria-label="Module index" class="toc" data-inema-toc="">
+<h2>In this module</h2>
+<span data-inema-section-counter="">Section 1 of 6</span>
+<ol>
+<li>
+<a href="#topico-1">1. People management under a different name</a>
+</li>
+<li>
+<a href="#topico-2">2. What the agent doesn’t “pull out of thin air”</a>
+</li>
+<li>
+<a href="#topico-3">3. People who build with agents already live this</a>
+</li>
+<li>
+<a href="#topico-4">4. Permission modes are the N0–N4 ladder with a button</a>
+</li>
+<li>
+<a href="#topico-5">5. Instructions, tests, and hooks: the production method</a>
+</li>
+<li>
+<a href="#topico-6">6. The bottleneck is clarity, not the AI</a>
+</li>
+</ol>
+<div aria-label="Reading progress" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="modulo:4-1" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 of 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+<p class="muted">Select a portion of the explanations to highlight or take notes.</p>
+</aside>
+<article class="lesson-content" data-inema-module="4-1" data-inema-track="4">
+<section class="lesson" data-inema-topic="modulo-4-1#topico-1" id="topico-1">
+<div class="lesson-head">
+<span class="circle">1</span>
+<h2>It’s people management under a different name</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Role and onboarding → Official system and targets → Delegation scope → Report and 1:1" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d4-1-1-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#fbbf24" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d4-1-1-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d4-1-1-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#fbbf24"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d4-1-1-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d4-1-1-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d4-1-1-glow)" height="74" rx="10" stroke="#fbbf24" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Role and onboarding</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d4-1-1-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="96.0">Official system and</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="115.0">goals</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d4-1-1-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">Level of authority</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Report and 1:1</text>
+</g>
+</svg>
+</div>
+<figcaption>Each agent principle has a known pair in people management, in the same order you hire, guide, hold accountable, and evaluate.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m4-1-t1-p1" id="m4-1-t1-p1">Replace the word “agent” with “new employee” and reread the 7 principles: nothing feels strange to someone who has already led others. Intention describes the role; context is onboarding; data is the official system; criteria are goals; autonomy is the scope of authority; observation is the report; supervision is the 1:1 meeting. The report on “the new era of AI” gave a new name to old practices.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m4-1-t1-p2" id="m4-1-t1-p2">People who think managing agents means learning everything from scratch get stuck before they even start. Realizing you already know a good part of the method removes fear and speeds up your first delegation. And it gives you a simple test: if you wouldn’t delegate like that to a person, don’t delegate like that to an AI.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Role</strong>intention, so you know why the opening exists.</div>
+<div class="key">
+<strong>Onboarding</strong>context, what you teach on day one.</div>
+<div class="key">
+<strong>Level of authority</strong>autonomy, “up to R$ 500 you decide”.</div>
+<div class="key">
+<strong>1</strong>1: supervision, review, correct, or decide whether to promote or not.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 4.1.1</span>
+<button data-copy="code-4-1-1">Copy example</button>
+</div>
+<pre id="code-4-1-1">
+<code>Goal: translate one of your “people management” tasks into “agent management”.
+
+Task: &lt;a task you want to delegate&gt;
+1. Intention (role): why does this function exist? &lt;response&gt;
+2. Context (onboarding): what would I explain on Day 1? &lt;response&gt;
+3. Data (official system): where is the information that matters? &lt;response&gt;
+4. Criteria (target): what does “done well” look like? &lt;response&gt;
+5. Autonomy (delegation scope): how far should it decide on its own? &lt;response&gt;
+6. Observation (report): what do I want to see, and when? &lt;response&gt;
+7. Supervision (1:1): when do I review and correct? &lt;response&gt;
+
+How to check: if any line is left blank, that’s exactly where the agent will make mistakes.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Ask “how would I do this with a new employee?” before writing any instruction.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Treat agent management like a technical topic that only programmers understand.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Take it to your agent.</strong> Each agent principle has a known counterpart in people management, in the same order you hire, onboard, manage performance, and evaluate. Use this idea to review your agent sheet before moving on.</aside>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Take an employee or colleague you’ve already guided and list what you told them in the first week. Mark which principle each item corresponds to.</p>
+<details>
+<summary>View commented answer</summary>
+<p>Usually, you find the house rules (context), where to look for information (data), and what they can decide on their own (autonomy). What’s often missing is the written criterion, because with people it gets adjusted in conversation. With an agent, it needs to be in the role.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-4-1#topico-2" id="topico-2">
+<div class="lesson-head">
+<span class="circle">2</span>
+<h2>What the agent doesn’t “figure out on its own”</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="What you know → What’s obvious → What’s written → What the agent uses" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d4-1-2-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#fbbf24" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d4-1-2-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d4-1-2-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#fbbf24"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d4-1-2-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d4-1-2-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d4-1-2-glow)" height="74" rx="10" stroke="#fbbf24" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">What you know</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d4-1-2-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">What’s obvious</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d4-1-2-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">What’s written</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">What the agent uses</text>
+</g>
+</svg>
+</div>
+<figcaption>Only the written part reaches the agent; what stayed only in your head—or is “obvious” to the team—gets lost along the way.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m4-1-t2-p1" id="m4-1-t2-p1">A new employee infers a lot: they observe coworkers, notice the company tone, and ask in the hallway. The agent doesn’t do any of that; it works only with what’s written in the instructions and the data it has access to. Everything a person would infer has to become text: the tone, the source that counts, what to do when information is missing, and when to stop.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m4-1-t2-p2" id="m4-1-t2-p2">Most agent mistakes come from what “seemed obvious” to the person who delegated. With a person, lack of clarity costs a lot by going slowly; with an agent, it costs immediately and at scale. Listing the implicit is the cheapest way to avoid this mistake.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Tone</strong>how to speak to a client, formal or close.</div>
+<div class="key">
+<strong>Source</strong>which spreadsheet or system is valid, and which isn’t.</div>
+<div class="key">
+<strong>If something is missing</strong>what to do when the data doesn’t exist.</div>
+<div class="key">
+<strong>Stop</strong>in what situation it calls you.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 4.1.2</span>
+<button data-copy="code-4-1-2">Copy example</button>
+</div>
+<pre id="code-4-1-2">
+<code>Goal: turn the “obvious” into written instructions.
+
+Paste at the end of your instruction and fill in:
+- Tone with the client: &lt;e.g., next, no slang, no emojis&gt;
+- Source that matters: &lt;e.g., 2026 Agenda spreadsheet, Confirmed tab&gt;
+- Not allowed: &lt;e.g., old WhatsApp messages&gt;
+- If information is missing: “don’t make it up; write [MISSING DATA] and tell me”
+- Stop and call me when: &lt;e.g., the client complains or talks about canceling&gt;
+
+How to check: ask the agent, “before you start, confirm in 3 lines what you understood”; if it doesn’t cite the source and the “if something is missing” rule, the instruction is still incomplete.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>From concept to action</h3>
+<ol>
+<li>What you know: identify the initial condition.</li>
+<li>What’s obvious: apply the described decision.</li>
+<li>What’s written: check the effect in the example.</li>
+<li>What the agent uses: record the output evidence.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Write the rule “if information is missing” in every instruction, even if it seems like an exaggeration.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Assume the agent will notice the right tone or the correct source “from context”.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>List three things that anyone on your team knows without anyone saying them. Rewrite each one as an instruction sentence.</p>
+<details>
+<summary>View commented answer</summary>
+<p>Example: “nobody responds to customers after 8pm” becomes “don’t send messages after 8pm; leave them as a draft for the morning”. The exercise shows how much of the operation depends on rules that are never written down.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-4-1#topico-3" id="topico-3">
+<div class="lesson-head">
+<span class="circle">3</span>
+<h2>People who program with agents already live this.</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Request and plan mode → Instruction file → Tests and permissions → Human review" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d4-1-3-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#fbbf24" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d4-1-3-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d4-1-3-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#fbbf24"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d4-1-3-grid)" height="200" width="720"></rect>
+<path d="M179 65 H192 V91 H197" fill="none" marker-end="url(#d4-1-3-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d4-1-3-glow)" height="72" rx="10" stroke="#fbbf24" stroke-width="2" width="150" x="25" y="25"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="66.0">Request + plan mode</text>
+</g>
+<path d="M354 91 H367 V117 H372" fill="none" marker-end="url(#d4-1-3-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="200" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="92.0">Instruction file</text>
+</g>
+<path d="M529 117 H542 V143 H547" fill="none" marker-end="url(#d4-1-3-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="375" y="77"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="118.0">Tests and permissions</text>
+</g>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="550" y="103"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="144.0">Human review</text>
+</g>
+</svg>
+</div>
+<figcaption>The flow of a code agent follows the same principles: combine, contextualize, verify, limit, and review.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m4-1-t3-p1" id="m4-1-t3-p1">Code agents, like Claude Code and Codex, are AI programs that work inside a repository—the folder of a project with all its history. Anyone who uses these agents practices the 7 principles every day: the plan mode (the agent proposes before changing anything), the CLAUDE.md or AGENTS.md (a file with the project rules), the repository as the source, tests (automated checks), permissions, failure log, and review.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m4-1-t3-p2" id="m4-1-t3-p2">This shows the method isn’t stage theory: it already works in production, in the hands of thousands of people. Even those who don’t program benefit by copying these practices into other areas. And programmers gain a vocabulary to explain their own routine to managers.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Planned mode</strong>intention, combine before executing.</div>
+<div class="key">
+<strong>CLAUDE.md</strong>context, the house rules in a file.</div>
+<div class="key">
+<strong>Tests</strong>criterion: “done” means it passes verification.</div>
+<div class="key">
+<strong>Review</strong>supervision: a human approves the irreversible.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 4.1.3</span>
+<button data-copy="code-4-1-3">Copy example</button>
+</div>
+<pre id="code-4-1-3">
+<code>Goal: see the 7 principles in practice for a code agent.
+
+1 Intention   → plan mode: “propose the plan before changing files”
+2 Context     → CLAUDE.md / AGENTS.md at the root of the project
+3 Data        → “read the file before asserting something about it”
+4 Criteria    → “it’s only ready when &lt;test command&gt; passes”
+5 Autonomy    → permission mode: plan, default, acceptEdits
+6 Observation → FALHAS.md: date, what broke, smallest fix
+7 Supervision → code review before publishing
+
+How to check: for each line, ask what the equivalent is in your area (e.g., FALHAS.md becomes a support errors spreadsheet).</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Copy from programming the rule “ready is what can be proven, not what is declared”.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Think these practices only serve people who write code.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Choose two items from the list (for example, planned mode and failure log) and describe how you would apply each one to a task that isn’t programming.</p>
+<details>
+<summary>View commented answer</summary>
+<p>Planned mode becomes “show me the email script before sending”; failure log becomes a table with date, error, and the agent’s support-team correction. The practice is the same; only the object changes.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-4-1#topico-4" id="topico-4">
+<div class="lesson-head">
+<span class="circle">4</span>
+<h2>Permission modes are the N0–N4 ladder with a button</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="N0-N1 plan → N2 default → N3 acceptEdits → N4 with safeguards" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d4-1-4-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#fbbf24" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d4-1-4-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d4-1-4-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#fbbf24"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d4-1-4-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d4-1-4-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d4-1-4-glow)" height="62" rx="10" stroke="#fbbf24" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">N0-N1 plan</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d4-1-4-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">N2 default</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d4-1-4-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">N3 acceptEdits</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="60.0">N4 with restraints</text>
+</g>
+</svg>
+</div>
+<figcaption>Each step releases a bit more action on its own, and the last one is only safe when automatic restraints block the irreversible.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m4-1-t4-p1" id="m4-1-t4-p1">In Claude Code, permission mode defines what the agent can do without asking. In plan, it only reads and proposes; in default, it asks for approval for every edit or command; in acceptEdits, it edits files on its own, but commands still ask; in bypassPermissions, it allows everything. It’s the same N0 to N4 autonomy ladder—just with a button instead of a conversation.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m4-1-t4-p2" id="m4-1-t4-p2">Choosing the “on the fly” mode is the most common mistake people make when they start with code agents. With the ladder, the choice becomes rule-based: the level comes from the action and the risks, not from urgency. And it becomes clear what has to happen in order to move up a rung.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>N0 and N1</strong>plan: only reads and proposes.</div>
+<div class="key">
+<strong>N2</strong>default: approves every edit and command.</div>
+<div class="key">
+<strong>N3</strong>acceptEdits: edits on its own; commands require.</div>
+<div class="key">
+<strong>N4</strong>only with hooks and isolated environment.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 4.1.4</span>
+<button data-copy="code-4-1-4">Copy example</button>
+</div>
+<pre id="code-4-1-4">
+<code>Goal: choose the permission mode based on the level, not on impulse.
+
+Level rule (from the skill agent sheet):
+  consulta → N0 · prepara/rascunho → N1 · executa → N3 · coordena processo → N4
+  if N3+ E (money OR irreversible OR people from outside) → N2
+  if N2+ E and no official source is defined → N1
+
+Map to Claude Code:
+  N0/N1 → plan
+  N2    → default + prohibitions as deny rules
+  N3    → acceptEdits + tests as the “ready” criterion + FALHAS.md
+  N4    → hooks that block push, deploy, and delete + isolated environment
+
+My case: task &lt;describe&gt; → level &lt;Nx&gt; → mode &lt;mode&gt;
+
+How to check: if the chosen mode is above what the level rule allows, bring it down. If you’re between two options, choose the lower one.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Start in plan or default and move up one step only after weeks without corrections.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Use bypassPermissions in a repository connected to production.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Take it to your agent.</strong> Each step releases a bit more action on its own, and the last one is only safe when automatic safeguards block the irreversible. Use this idea to review your agent sheet before moving on.</aside>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Your agent will correct website texts and also publish the new version live. Which level and which mode does the rule indicate?</p>
+<details>
+<summary>View commented answer</summary>
+<p>Publishing live is irreversible and involves people outside (visitors), so the rule lowers it to N2: default mode, with publishing as a deny rule. It edits, you approve, and you publish. You can move up when there are weeks of approvals without corrections.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-4-1#topico-5" id="topico-5">
+<div class="lesson-head">
+<span class="circle">5</span>
+<h2>Instructions, tests, and hooks: the method in production</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Written instruction → Automated test → Deny rule → Hook that blocks" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d4-1-5-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#fbbf24" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d4-1-5-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d4-1-5-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#fbbf24"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d4-1-5-grid)" height="200" width="720"></rect>
+<path d="M179 65 H192 V91 H197" fill="none" marker-end="url(#d4-1-5-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d4-1-5-glow)" height="72" rx="10" stroke="#fbbf24" stroke-width="2" width="150" x="25" y="25"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="66.0">Written instruction</text>
+</g>
+<path d="M354 91 H367 V117 H372" fill="none" marker-end="url(#d4-1-5-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="200" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="92.0">Automated test</text>
+</g>
+<path d="M529 117 H542 V143 H547" fill="none" marker-end="url(#d4-1-5-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="375" y="77"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="118.0">Deny rule</text>
+</g>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="550" y="103"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="144.0">Hook that blocks</text>
+</g>
+</svg>
+</div>
+<figcaption>The layers go from the request to the restraint: the more severe the risk, the lower the rule should be, where the agent can’t ignore it.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m4-1-t5-p1" id="m4-1-t5-p1">Three pieces turn the principles into real configuration. The instruction file (CLAUDE.md for the Claude Code, AGENTS.md for Codex and others) sits at the root of the project and is read in every session. Tests are commands that automatically verify whether the work is correct. Hooks are triggers that run before an action and can block it; the allow and deny rules in the configuration grant or prohibit actions.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m4-1-t5-p2" id="m4-1-t5-p2">Writing “don’t deploy” in the conversation isn’t enough: the conversation ends and the rule disappears. In the instruction file, it applies every time; as a deny rule or hook, it applies even if the agent forgets. It’s the difference between asking and guaranteeing.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>CLAUDE.md</strong>house rules read in every session.</div>
+<div class="key">
+<strong>Tests</strong>ready criterion that doesn’t depend on opinion.</div>
+<div class="key">
+<strong>Deny</strong>action prohibited by permissions.</div>
+<div class="key">
+<strong>Hook</strong>restraint that blocks the irreversible before it happens.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 4.1.5</span>
+<button data-copy="code-4-1-5">Copy example</button>
+</div>
+<pre id="code-4-1-5">
+<code>Objective: paste the agent’s level and prohibitions into CLAUDE.md or AGENTS.md.
+
+## Agent for this project
+Level: &lt;N2&gt; · &lt;prepare, you approve&gt;. Permission mode: &lt;default&gt;.
+Mission: &lt;what it does and why it matters&gt;.
+Source of truth: the repository. Read the file before making any claims about it.
+Ready = &lt;npm test&gt; passes with no errors. Don’t declare ready before that.
+
+### Never do it alone
+- git push, deploy, or publishing
+- delete files or folders outside &lt;working directory&gt;
+- modify &lt;.env / client data&gt;
+If they ask, tell them you’re passing it to me.
+
+### Stop and call me when
+- a test fails two times in a row
+- the task requires working outside &lt;working directory&gt;
+
+### Log
+Log each failure in FALHAS.md: date, what broke, smallest correction.
+
+How to verify: open a new session and ask, “summarize in 3 lines your rules for this project”; it should mention the level, the ready criterion, and the prohibitions.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>From concept to action</h3>
+<ol>
+<li>Written instruction: identify the initial condition.</li>
+<li>Automated test: apply the described decision.</li>
+<li>Deny rule: check the effect in the example.</li>
+<li>Hook that blocks: record the output evidence.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Repeat severe prohibitions as a deny rule or hook, in addition to the text.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Trust only the chat request for something irreversible.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Take the CLAUDE.md or AGENTS.md from one of your projects (or create one) and add the level block, ready criterion, and three prohibitions.</p>
+<details>
+<summary>View commented answer</summary>
+<p>The minimum block has level, source of truth, definition of ready, and prohibitions with “if they ask, pass it to me”. If the project has deploy, the deploy prohibition must also become a deny rule, because the text alone depends on the agent obeying.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-4-1#topico-6" id="topico-6">
+<div class="lesson-head">
+<span class="circle">6</span>
+<h2>The bottleneck is clarity, not AI</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Delegate → Observe → Correct a rule → Move up a level" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d4-1-6-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#fbbf24" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d4-1-6-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d4-1-6-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#fbbf24"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d4-1-6-grid)" height="200" width="720"></rect>
+<path d="M280 54 H414" fill="none" marker-end="url(#d4-1-6-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<path d="M540 87 V110" fill="none" marker-end="url(#d4-1-6-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<path d="M420 148 H287" fill="none" marker-end="url(#d4-1-6-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<path d="M160 116 V92" fill="none" marker-end="url(#d4-1-6-arrow)" opacity=".6" stroke="#fbbf24" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d4-1-6-glow)" height="64" rx="10" stroke="#fbbf24" stroke-width="2" width="240" x="40" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="59.0">Delegate</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="59.0">Observe</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="153.0">Correct a rule</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="40" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="153.0">Move up a level</text>
+</g>
+</svg>
+</div>
+<figcaption>The cycle doesn’t end: each turn starts with the delegation adjusted by the error from the previous turn.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m4-1-t6-p1" id="m4-1-t6-p1">The 7 questions are the same ones a good manager always asked. Without intention, the agent efficiently does the wrong task; without a source of truth, it picks the information on its own and picks badly; without criteria, it says “done” and you only find out later that it wasn’t. And the design of the principles is a circle: supervision feeds back into intention, each mistake becomes a rule, and each clean week becomes a rung of autonomy.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m4-1-t6-p2" id="m4-1-t6-p2">Blaming “the AI” prevents you from fixing what’s within your reach: delegation. When you treat each error as a missing rule, the agent improves week after week without switching tools. The circle turns the Agent Sheet into a living process, not a form you fill out once.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>No intention</strong>does the wrong task well.</div>
+<div class="key">
+<strong>No source of truth</strong>chooses the information poorly.</div>
+<div class="key">
+<strong>No criterion</strong>for “ready” that isn’t actually ready.</div>
+<div class="key">
+<strong>Observed</strong>error circle turns into a new rule.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 4.1.6</span>
+<button data-copy="code-4-1-6">Copy example</button>
+</div>
+<pre id="code-4-1-6">
+<code>Goal: turn an agent mistake into a rule instead of blaming the tool.
+
+Observed error: &lt;what it did wrong&gt;
+Which principle was missing? (check one)
+[ ] intention  [ ] context  [ ] data  [ ] criteria
+[ ] autonomy [ ] observation [ ] supervision
+New rule (one sentence): &lt;e.g., “if the price isn’t in the table, write [MISSING PRICE]”&gt;
+Where it goes: &lt;agent sheet section or &lt;CLAUDE.md&gt;&gt;
+Line in the log: | &lt;date&gt; | &lt;what broke&gt; | &lt;smallest fix&gt; | &lt;rule updated&gt; |
+
+How to check: repeat the same situation the following week; if the error doesn’t come back, the rule worked.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ For each mistake, ask “which of the 7 questions did I not answer?”</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Switch tools or models before reviewing the instruction.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Think of a recent error from an AI you use. Classify it into one of the three symptoms (intention, source, criterion) and write the rule that would prevent it.</p>
+<details>
+<summary>View commented answer</summary>
+<p>Almost always, the error fits into one of the three: wrong task (intention), wrong data (source), or incomplete delivery (criterion). A good rule is short, specific, and testable the following week.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="quiz" data-inema-check="q-4-1">
+<span class="eyebrow">CHECK WITHOUT LOCKING</span>
+<h2>Check your understanding</h2>
+<p>An agent delivered, with great efficiency, a report about the wrong topic. According to the secret of the 7 principles, what’s the most likely cause?</p>
+<div class="quiz-options">
+<button data-inema-check-option="0">The AI isn’t smart enough for that task yet.</button>
+<button data-inema-check-option="1">The intention wasn’t written clearly in the delegation.</button>
+<button data-inema-check-option="2">You didn’t give the agent full autonomy to decide on its own.</button>
+</div>
+<div aria-live="polite" data-inema-check-feedback="" role="status">
+</div>
+</section>
+<section class="module-summary">
+<h2>What you take from this module</h2>
+<p>Recognize each principle in a management practice you already use and translate it into written instructions for an agent, including a code agent.</p>
+<ul>
+<li>People management, under another name.</li>
+<li>What the agent doesn’t “pick up on the fly”.</li>
+<li>If you program with agents, you’re already living this.</li>
+<li>Permission modes are the N0–N4 ladder with a button.</li>
+<li>Instructions, tests, and hooks: the method in production.</li>
+<li>The bottleneck is clarity, not AI.</li>
+</ul>
+<p>Next action: apply what you learned to your agent sheet and note what still needs review.</p>
+</section>
+<div class="actions">
+<a class="btn" href="index.html">← Track map</a>
+<a class="btn cta" href="../trilha4/modulo-4-2.html">Next: Final project: your agent in production →</a>
+</div>
+</article>
+</div>
+<p class="muted">Reference for this module: project 7PA materials and <a href="../../index.html#fontes">course sources and editorial criteria</a>.</p>
+</main>
+<footer>
+<div class="wrap">AI Agent Management: the 7 Principles · INEMA.CLUB · v1.0.0 · Course in Portuguese<br/>Original educational material from project 7PA. Progress saved in this browser; export a copy to My learning journey.<br/>
+<a href="../../index.html#fontes">Sources and editorial criteria</a> · <a href="https://inematds.github.io/7pa/en/" rel="noopener" target="_blank">Agent Sheet</a> · <a download="" href="../../materiais/entrevistador.md">Interviewer prompt</a>
+</div>
+</footer>
+<dialog aria-label="Read the module" id="module-modal">
+<button data-close-modal="">Close module</button>
+<iframe title="Complete module content">
+</iframe>
+</dialog>
+<script id="quiz-data" type="application/json">{"id": "q-4-1", "q": "An agent delivered, with great efficiency, a report about the wrong topic. According to the secret of the 7 principles, what’s the most likely cause?", "options": ["The AI isn’t smart enough for that task yet.", "The intention wasn’t written clearly in the delegation.", "You didn’t give the agent full autonomy to decide on its own."], "answer": "1", "explain": {"0": "The agent doesn’t make mistakes because it’s dumb; it makes mistakes because the delegation was done poorly. Without written intention, it will execute the task the wrong way. The bottleneck is the delegate’s clarity, not the AI.", "1": "The agent doesn’t make mistakes because it’s dumb; it makes mistakes because the delegation was done poorly. Without written intention, it will execute the task the wrong way. The bottleneck is the delegate’s clarity, not the AI.", "2": "The agent doesn’t make mistakes because it’s dumb; it makes mistakes because the delegation was done poorly. Without written intention, it will execute the task the wrong way. The bottleneck is the delegate’s clarity, not the AI."}}</script>
+<script src="../../assets/learn.js">
+</script>
+<script src="../../assets/course.js">
+</script>
+<nav aria-label="Course language" data-course-languages=""><a href="../../../curso/trilha4/modulo-4-1.html" hreflang="pt-BR" lang="pt-BR">Português</a><a aria-current="page" href="modulo-4-1.html" hreflang="en" lang="en">English</a><a href="../../../es/curso/trilha4/modulo-4-1.html" hreflang="es" lang="es">Español</a></nav><script data-course-language-hash="">document.querySelectorAll('[data-course-languages] a').forEach(function(a){a.addEventListener('click',function(){a.href=a.getAttribute('href').split('#')[0]+location.hash;});});</script></body>
+</html>

@@ -1,0 +1,51 @@
+{
+  "translations": {
+    "66de029772c90718849ad8ca": "| # | Principio | Pregunta | Campos que salen |\n|---|---|---|---|\n| 1 | Intención | ¿Qué quieres lograr con tu mano? ¿Por qué importa esto? | nombre del agente, tarea, por qué |\n| 2 | Contexto | Si contratases a alguien hoy para esto, ¿qué explicarías en el 1º día? | reglas de la casa, tono |\n| 3 | Datos | ¿De dónde viene la información correcta? ¿Qué no vale? Si falta, ¿qué hace? | fuente, no vale, si falta |\n| 4 | Criterio | ¿Cómo es un día en el que esto quedó perfecto? ¿Hasta cuándo? | éxito, plazo |\n| 5 | Autonomía | ¿Solo investiga, prepara, ejecuta o gestiona un proceso entero? ¿Implica dinero? ¿Algo irreversible? ¿Gente de afuera? ¿Qué NUNCA hace solo? | acción, riesgos, prohibiciones |\n| 6 | Observación | ¿Qué quieres ver en el informe? ¿Cuándo? | informe, cuándo |\n| 7 | Supervisión | ¿Cuándo se detiene y te llama? ¿Cuándo revisas? | gatillos, revisión |",
+    "198fd93ab081460ea97a849c": "### 3. Calcular el nivel (regla fija — no \"adivines\", aplícala)",
+    "c82ac6588f15955028522689": "acción: consulta → N0 · ⟪P0⟫ → N1 · ejecuta → N3 · coordina proceso → N4\nsi N ≥ 3 Y (dinero O irreversible O gente de fuera) → N2   (prepara, humano aprueba)\nsi N > 1 Y no hay fuente oficial definida               → N1   (sin fuente, solo sugiere)",
+    "3129d3db64081674e1dda8cf": "Explica el nivel en 1 frase con el motivo real, y di qué tiene que pasar para subir (N1→N2: fuente definida + 2 semanas de borradores sin error; N2→N3: 4 semanas aprobando sin corregir, solo en la parte sin riesgo; N3→N4: 2 meses de informes limpios y alarmas funcionando). Si hay duda entre dos niveles, **el menor**.",
+    "25555c052a59fcf0bfb4c29c": "### 4. Entregar — guardar ⟪P0⟫\nGuarda en el directorio actual (o ⟪P1⟫ si ya existe un ⟪P2⟫ de otro agente — **nunca sobrescribas sin preguntar**). Estructura:",
+    "a791688bb1170c9129927f17": "# Ficha del Agente — <Nombre>\n> Nivel <Nx> · <nombre del nivel> — <motivo en 1 frase>. Para subir: <condición>.\n\n## 1. Misión (intención) … ## 7. Supervisión\n(los 7 bloques, cortos)\n\n## Instrucción lista\n(prompt en 2ª persona, para pegar: misión + por qué importa; reglas de la casa y tono;\nfuente oficial, lo que no vale, \"si ⟪P0⟫: <regla>\", \"nunca inventes datos\";\ndefinición lista; nivel con lo que puede y no puede — N2 = \"nada sale sin mi OK explícito\";\nprohibiciones + \"si te lo piden, di que lo pasarás conmigo\"; cuándo parar y llamarme;\nformato y horario del informe, incluyendo errores; \"antes de empezar, confirma en 3 líneas\").\n\n## 3 pruebas antes de confiar\n1. Información ⟪P1⟫ en la fuente → esperado: <regla de \"si falta\">.\n2. Pedido prohibido: \"<1ª prohibición>\" → esperado: rechazo y me llamas.\n3. Alarma: \"<1º gatillo>\" → esperado: se detiene y me llama.\n\n## Checklist de supervisión\nAntes de encender · Todos los días (2 min) · Todas las semanas (10 min, ajusta UNA regla) · Todos los meses (¿el nivel sigue siendo el correcto?)\n\n## Registro de fallas\n| fecha | qué se rompió | corrección menor | regla de la ficha cambiada |",
+    "d597f8be615fa585449591b7": "Después de guardar, muestra en la conversación solo: el nivel + motivo, la ruta del archivo y las 3 pruebas. No vuelques el archivo entero.",
+    "2e4f4ce0d77eff6787d5a808": "### 5. Si el agente es un agente de CÓDIGO (Claude Code, Codex, etc.)\nTraduce el nivel a la configuración real y agrega una sección ⟪P0⟫ en el ⟪P1⟫:",
+    "282e4a1ec08c48456afa9594": "| Nivel | Claude Code | Qué más |\n|---|---|---|\n| N0 · N1 | modo plano (⟪P0⟫) — solo lee y propone | instrucción en ⟪P1⟫/⟪P2⟫ |\n| N2 | modo estándar — pide aprobación en cada ⟪P6⟫ | prohibiciones como reglas ⟪P3⟫ en los permisos |\n| N3 | ⟪P4⟫ — edita solo, los comandos siguen pidiendo | ⟪P7⟫ como criterio de listo; ⟪P5⟫ |\n| N4 | solo con hooks que bloquean lo irreversible (push, deploy, delete) + entorno aislado | nunca \"bypass\" en repo con producción |",
+    "574234bd753f5011985beafc": "No cambies ⟪P0⟫ sola/o: propone el fragmento y aplícalo solo si la persona lo pide.",
+    "22d0db6b01bb911f67d960a1": "## Modo 2 — Auditar\nCuando la persona pegue un prompt, un ⟪P0⟫/⟪P1⟫ o una descripción de un agente existente:\n1. Da nota **0 (ausente) · 1 (vago) · 2 (claro)** para cada uno de los 7 principios, con la evidencia (fragmento citado) o \"no encontrado\".\n2. Aplica la regla del nivel a lo que el texto permite y di si la autonomía actual está **por encima** de lo que acepta la regla — este es el hallazgo más importante.\n3. Lista un máximo de 5 correcciones, de la más riesgosa a la menos, cada una con el texto listo para pegar.\n4. Ofrece generar la ficha completa (Modo 1) a partir de lo que ya existe, preguntando solo lo que falta.",
+    "af477bafb58c8e9c7ee789fc": "## Reglas\n- Una tarea por ficha. Si la persona describe tres, sugiere tres fichas y empieza por la de menor riesgo.\n- Nunca subas el nivel para \"ser útil\". La regla solo baja.\n- No inventes reglas de la casa, fuente o prohibición: pregunta. Lo que la persona no dijo queda marcado ⟪P0⟫.\n- Versión web para quien no usa terminal: ⟪P1⟫ · galería: ⟪P2⟫"
+  },
+  "metrics": {
+    "stage": "curso-7pa:content",
+    "model": "openai/gpt-5.4-nano",
+    "lang": "Spanish (Latin America)",
+    "input_items": 12,
+    "source_characters": 4831,
+    "usage": {
+      "prompt_tokens": 2175,
+      "completion_tokens": 1693,
+      "total_tokens": 3868,
+      "cost": 0.00255125,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00255125,
+        "upstream_inference_prompt_cost": 0.000435,
+        "upstream_inference_completions_cost": 0.00211625
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "cost_usd": 0.00255125,
+    "seconds": 11.31,
+    "id": "gen-1790189989-PP03o49EcKBhwiUvTuQY",
+    "returned_model": "openai/gpt-5.4-nano",
+    "cost_kind": "reported"
+  }
+}

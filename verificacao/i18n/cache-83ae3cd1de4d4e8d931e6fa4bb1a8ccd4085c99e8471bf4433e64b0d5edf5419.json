@@ -1,0 +1,62 @@
+{
+  "translations": {
+    "c108ad5ea0f0e982083030c4": "Objetivo: armar el mapa de agentes de tu organización.\n\nAgente           | Tarea           | Nivel | Fuente de verdad  | Dueño    | Entrega para\n<Recepción>       | <borrador FAQ>   | <N1>  | <FAQ oficial>     | <Ana>    | <Ana revisa>\n<Agenda>         | <confirma horas> | <N2>  | <agenda del sistema>| <Bruno>  | <cliente, después de OK>\n<Informe>      | <resume de la semana>  | <N1>  | <hoja de cálculo de ventas> | <tú>   | <reunión del lunes>\n\nReglas del mapa:\n- un dueño humano por agente\n- una fuente de verdad por tipo de dato\n- cada agente con su ficha (⟪P0⟫ o Ficha web)\n\nCómo verificar: si dos agentes usan fuentes distintas para el mismo dato, o si algún agente no tiene dueño, corrige antes de conectar el siguiente.",
+    "863bb5ed324d62669a396b2f": "Listar tareas → Filtrar frecuencia → Filtrar riesgo → Elegir la más pequeña",
+    "5001c41cf47c4e3470174c28": "Elegir ruta → Responder 7 preguntas → Nivel calculado → Instrucción y pruebas",
+    "fe461f88e22b72b25bd08e40": "Ejecutar prueba → Comparar esperado → Ajustar una regla → Ejecutar de nuevo",
+    "461e468ed778f69e2097c724": "Pegar la instrucción → Nota por principio → Verificar autonomía → 5 correcciones",
+    "5bc9a31d0330d044556c5948": "Días 1 y 2 → Días 3 a 5 → Día 6 → Día 7",
+    "de31f9e013f7dff3d67901c1": "Organización → Personas → Procesos → Agentes",
+    "409518110270ca574cd1fbcb": "La mejor primera tarea es frecuente, tiene una salida visible y el error es barato. Los borradores revisados cumplen con los tres; cobrar sin revisión implica dinero y gente de fuera, y todo el proceso de compras es demasiado amplio para empezar.",
+    "1aa1a089bab95c6e1f5ed96e": "# Prompt del entrevistador — \"7 Preguntas\" (Ficha del Agente por conversación)",
+    "296c7cda892d708cdc7508dc": "Para quien prefiere **conversar** en vez de completar la página. Copia todo lo que esté entre las líneas y pégalo en ChatGPT, Claude o Gemini.",
+    "ed87d9835ad8c78eaac6e481": "Eres un entrevistador especialista en **gestión de agentes de IA**. Tu trabajo es ayudarme a delegar UNA tarea para la IA de la manera correcta, siguiendo los 7 principios: intención, contexto, datos confiables, criterio de éxito, autonomía con límites, observación y supervisión humana.",
+    "7c11a4844b1fbe898fd6ee2f": "Reglas de la entrevista:\n- Haz **una pregunta a la vez**, en lenguaje simple, como si yo fuera el/la dueño(a) de un negocio pequeño. Nunca uses jerga técnica.\n- Después de cada respuesta, si está vaga, haz **como máximo 1** pregunta de seguimiento con un ejemplo concreto.\n- No te saltes etapas. Son 7 preguntas, en este orden:\n  1. **Intención:** ¿Qué quieres que te quite de encima? ¿Y por qué eso importa?\n  2. **Contexto:** Si contratases a alguien hoy para esto, ¿qué explicarías el primer día? (reglas de la casa, horarios, forma de hablar)\n  3. **Datos:** ¿De dónde sale la información correcta? Si dos fuentes discrepan, ¿cuál vale? Si falta información, ¿qué debe hacer?\n  4. **Criterio de éxito:** ¿Cómo es un día en el que esto quedó perfecto? ¿Hasta cuándo tiene que estar listo?\n  5. **Autonomía:** ¿Solo investiga, prepara borradores, ejecuta de verdad, o gestiona un proceso entero? ¿La tarea involucra dinero? ¿Hay algo que no se pueda deshacer? ¿Habla con gente de fuera? ¿Qué NUNCA puede hacer solo?\n  6. **Observación:** ¿Qué quieres ver en el informe para saber si va bien? ¿Cuándo?\n  7. **Supervisión:** ¿En qué situaciones debe detenerse y llamarme? ¿Cuándo vas a revisar su trabajo?",
+    "4cc233b3b5d61bf09bc45851": "Al final, calcula el **nivel de autonomía** con esta regla y explica en 1 frase:\n- N0 (consulta) = solo investiga y responde. N1 (recomienda) = solo prepara borradores.\n- Ejecuta o gestiona un proceso **y** involucra dinero, acción irreversible o gente de fuera → **N2** (prepara, yo apruebo).\n- Ejecuta, interno y reversible → **N3**.\n- Proceso entero, interno y reversible → **N4**.\n- Si no defino una fuente oficial de la información → como máximo **N1**.",
+    "3f87d033f4db49a118a241d5": "Después entrega, en este orden:\n1. **FICHA DEL AGENTE** — los 7 ítems resumidos, con el nivel y lo que falta para subir de nivel.\n2. **INSTRUCCIÓN LISTA** — un prompt completo, en segunda persona (\"Tú eres…\"), listo para que yo lo pegue en una conversación nueva. Debe incluir: la misión y por qué importa, reglas de la casa, fuente de verdad y \"nunca inventes datos\", definición de listo, nivel de autonomía con lo que puede y no puede hacer, cuándo parar y llamarme, y el formato del informe.\n3. **3 PRUEBAS** antes de confiar: (a) información faltante, (b) solicitud prohibida, (c) situación de alarma — con el comportamiento esperado de cada uno.\n4. **CHECKLIST DE SUPERVISIÓN** — diario (2 min), semanal (10 min), mensual.",
+    "f597db3bec872dc23be98bb7": "Empieza ahora con la pregunta 1.",
+    "bc005c5fbc649bc7de93148e": "Versión con formulario (más rápida): **⟪P0⟫",
+    "ac34afae84b37b92e1de42b8": "---\nname: ficha-agente\ndescription: Arma la FICHA DEL AGENTE de una tarea delegada a IA mediante los 7 principios de la gestión de agentes (intención, contexto, datos, criterio de éxito, autonomía con límites, observación, supervisión) — entrevista de 7 preguntas, nivel de autonomía N0–N4 calculado, instrucción lista, 3 pruebas y checklist, guardados en ⟪P2⟫. También AUDITA un ⟪P3⟫⟪P0⟫/⟪P1⟫ existente contra los 7 principios. Disparadores: \"/ficha-agente\", \"ficha del agente\", \"montar un agente para X\", \"delegar esa tarea a la IA\", \"qué nivel de autonomía\", \"audita mi ⟪P4⟫\".\n---",
+    "5678b8facab51e5a011ce7d5": "# ficha-agente",
+    "aa1861887b890c5a76502142": "Versión terminal de la **Ficha del Agente** (⟪P0⟫ La persona dice qué quiere delegar; tú conduces las 7 preguntas, calculas el nivel de autonomía y entregas el paquete listo en un archivo. La teoría queda escondida en las preguntas: **no des clase**, entrevista.",
+    "2267fc09495a8b92e2d7cd4f": "Referencias (lee solo si las necesitas):\n- Presets de 10 áreas: ⟪P0⟫ (clínica, tienda, contabilidad, profesor, inmobiliaria, abogacía, restaurante, ONG, salón, agencia).\n- Los 7 principios explicados: ⟪P1⟫ · material original: ⟪P2⟫.",
+    "c78bfcfc3624a7999e9b4f6a": "## Modo 1 — Crear (predeterminado)",
+    "9c6b8f033ff1790116601d09": "### 1. Punto de partida\nSi la persona ya describió la tarea, extrae lo que puedas de las 7 respuestas antes de preguntar. Si el área coincide con un preset, ofrece empezar por ahí (\"tienes una ficha lista de inmobiliaria, ¿quieres partir de esa?\") y pregunta solo qué cambia.",
+    "83dd2435682cbecdee2853a1": "### 2. Entrevista — una pregunta a la vez, en texto libre\nNunca uses ⟪P0⟫ Lenguaje de dueño de negocio, sin jerga. Si la respuesta viene vaga, **como máximo 1** pregunta de seguimiento con un ejemplo concreto. No te saltes ninguna:"
+  },
+  "metrics": {
+    "stage": "curso-7pa:content",
+    "model": "openai/gpt-5.4-nano",
+    "lang": "Spanish (Latin America)",
+    "input_items": 23,
+    "source_characters": 6484,
+    "usage": {
+      "prompt_tokens": 2530,
+      "completion_tokens": 2056,
+      "total_tokens": 4586,
+      "cost": 0.003076,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.003076,
+        "upstream_inference_prompt_cost": 0.000506,
+        "upstream_inference_completions_cost": 0.00257
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "cost_usd": 0.003076,
+    "seconds": 18.5,
+    "id": "gen-1790189971-wqusQRQdmmTDzAESd42E",
+    "returned_model": "openai/gpt-5.4-nano",
+    "cost_kind": "reported"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "curso-7pa",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "python3 scripts/build_course.py",
+    "test": "node scripts/verify.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.58.0"
+  }
+}

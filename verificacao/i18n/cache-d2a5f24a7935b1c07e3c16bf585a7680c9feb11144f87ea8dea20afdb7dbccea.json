@@ -1,0 +1,51 @@
+{
+  "translations": {
+    "66de029772c90718849ad8ca": "| # | Principle | Question | Fields that come out |\n|---|---|---|---|\n| 1 | Intention | What do you want to get out of your agent? Why does it matter? | agent name, task, why |\n| 2 | Context | If you hired someone for this today, what would you explain on the 1st day? | house rules, tone |\n| 3 | Data | Where does the correct information come from? What doesn’t count? If it’s missing, what does it do? | source, doesn’t count, if missing |\n| 4 | Success criteria | What does a day where this was perfect look like? Until when? | success, deadline |\n| 5 | Autonomy | Does it only research, prepare, execute, or does it run an entire process? Does it involve money? Anything irreversible? People from the outside? What does it NEVER do alone? | action, risks, prohibitions |\n| 6 | Observation | What do you want to see in the report? When? | report, when |\n| 7 | Human supervision | When does it stop and call you? When do you review? | triggers, review |",
+    "198fd93ab081460ea97a849c": "### 3. Calculate the level (fixed rule — don’t \"guess\", apply it)",
+    "c82ac6588f15955028522689": "action: consult → N0 · ⟪P0⟫ → N1 · executes → N3 · coordinates process → N4\nif N ≥ 3 AND (money OR irreversible OR people from the outside) → N2   (prepares, human approves)\nif N > 1 AND no official source is defined               → N1   (no source, only suggests)",
+    "3129d3db64081674e1dda8cf": "Explain the level in 1 sentence with the real reason, and say what needs to happen to move up (N1→N2: defined source + 2 weeks of draft attempts with no errors; N2→N3: 4 weeks approving without corrections, only in the part with no risk; N3→N4: 2 months of clean reports and alarms working). If you’re between two levels, **take the lower one**.",
+    "25555c052a59fcf0bfb4c29c": "### 4. Deliver — save ⟪P0⟫\nSave in the current directory (or ⟪P1⟫ if an existing ⟪P2⟫ from another agent is already there — **never overwrite without asking**). Structure:",
+    "a791688bb1170c9129927f17": "# Agent Sheet — <Name>\n> Level <Nx> · <level name> — <reason in 1 sentence>. To move up: <condition>.\n\n## 1. Mission (intention) … ## 7. Human supervision\n(the 7 blocks, short)\n\n## Ready instruction\n(second-person prompt, to paste: mission + why it matters; house rules and tone;\nofficial source, what doesn’t count, \"if ⟪P0⟫: <rule>\", \"never invent data\";\ndefinition of done; level with what it can and can’t do — N2 = \"nothing comes out without my explicit OK\";\nprohibitions + \"if they ask, tell them you’ll pass it to me\"; when to stop and call me;\nreport format and schedule, including errors; \"before you start, confirm in 3 lines\".)\n\n## 3 tests before trusting\n1. Information ⟪P1⟫ in the source → expected: <rule for \"if missing\">.\n2. Prohibited request: \"<1st prohibition>\" → expected: refusal and calling you.\n3. Alarm: \"<1st trigger>\" → expected: stop and call you.\n\n## Supervision checklist\nBefore turning it on · Every day (2 min) · Every week (10 min, adjust ONE rule) · Every month (is the level still the right one?)\n\n## Failure log\n| date | what broke | smallest correction | changed sheet rule |",
+    "d597f8be615fa585449591b7": "After saving, show in the conversation only: the level + reason, the file path, and the 3 tests. Don’t dump the whole file.",
+    "2e4f4ce0d77eff6787d5a808": "### 5. If the agent is a CODE agent (Claude Code, Codex, etc.)\nTranslate the level into the real configuration and add a section ⟪P0⟫ in ⟪P1⟫:",
+    "282e4a1ec08c48456afa9594": "| Level | Claude Code | What else |\n|---|---|---|\n| N0 · N1 | flat mode (⟪P0⟫) — only reads and proposes | instruction in ⟪P1⟫/⟪P2⟫ |\n| N2 | standard mode — asks for approval for every ⟪P6⟫ | prohibitions as rules ⟪P3⟫ in permissions |\n| N3 | ⟪P4⟫ — edits alone, commands keep asking | ⟪P7⟫ as the definition of done; ⟪P5⟫ |\n| N4 | only with hooks that block irreversibles (push, deploy, delete) + isolated environment | never \"bypass\" in a repo with production |",
+    "574234bd753f5011985beafc": "Don’t change ⟪P0⟫ by yourself: propose the snippet and apply it only if the person asks.",
+    "22d0db6b01bb911f67d960a1": "## Mode 2 — Audit\nWhen the person pastes a prompt, a ⟪P0⟫/⟪P1⟫, or a description of an existing agent:\n1. Give a score **0 (absent) · 1 (vague) · 2 (clear)** for each of the 7 principles, with the evidence (quoted excerpt) or \"not found\".\n2. Apply the level rule to what the text allows and say whether the current autonomy is **above** what the rule accepts — this is the most important finding.\n3. List at most 5 corrections, from most risky to least risky, each with the ready-to-paste text.\n4. Offer to generate the full Agent Sheet (Mode 1) from what already exists, asking only what’s missing.",
+    "af477bafb58c8e9c7ee789fc": "## Rules\n- One task per sheet. If the person describes three, suggest three sheets and start with the one with the lowest risk.\n- Never raise the level to \"be useful\". The rule only goes down.\n- Don’t invent house rules, source, or prohibitions: ask. What the person didn’t say is marked as ⟪P0⟫.\n- Web version for people who don’t use a terminal: ⟪P1⟫ · gallery: ⟪P2⟫"
+  },
+  "metrics": {
+    "stage": "curso-7pa:content",
+    "model": "openai/gpt-5.4-nano",
+    "lang": "English",
+    "input_items": 12,
+    "source_characters": 4831,
+    "usage": {
+      "prompt_tokens": 2171,
+      "completion_tokens": 1591,
+      "total_tokens": 3762,
+      "cost": 0.00242295,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00242295,
+        "upstream_inference_prompt_cost": 0.0004342,
+        "upstream_inference_completions_cost": 0.00198875
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "cost_usd": 0.00242295,
+    "seconds": 9.95,
+    "id": "gen-1790189956-DFalP8RsnSR0j0Q0W0nl",
+    "returned_model": "openai/gpt-5.4-nano",
+    "cost_kind": "reported"
+  }
+}

@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<script>
+(function () {
+  try {
+    var html = document.documentElement;
+    var DEF = { theme: 'inema-dark', font: 'inter', fontScale: 100, lineWidth: 68, leading: 1.7, accent: 'emerald' };
+    function clone(o) { var r = {}; for (var x in o) r[x] = o[x]; return r; }
+    var p = clone(DEF);
+    try {
+      var raw = localStorage.getItem('inema.prefs');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          for (var k in DEF) if (parsed[k] != null) p[k] = parsed[k];
+        }
+      } else {
+        // fallback ao tema legado do v1
+        var legacy = localStorage.getItem('theme');
+        if (legacy === 'light') p.theme = 'claro';
+        else if (legacy === 'dark') p.theme = 'inema-dark';
+      }
+    } catch (e) { p = clone(DEF); }
+
+    // mapa tema -> (.dark on/off, data-theme, color-scheme)
+    var THEMES = {
+      'inema-dark': { dark: true,  attr: null,        cs: 'dark'  },
+      'claro':      { dark: false, attr: null,        cs: 'light' },
+      'sepia':      { dark: false, attr: 'sepia',     cs: 'light' },
+      'foco':       { dark: null,  attr: 'foco',      cs: null    },  // herda eixo atual
+      'contraste':  { dark: true,  attr: 'contraste', cs: 'dark'  }
+    };
+    var t = THEMES[p.theme] || THEMES['inema-dark'];
+
+    if (t.dark === true) html.classList.add('dark');
+    else if (t.dark === false) html.classList.remove('dark');
+    // 'foco' (null) preserva o que ja houver no atributo class do <html>
+
+    if (t.attr) html.setAttribute('data-theme', t.attr);
+    else html.removeAttribute('data-theme');
+
+    html.style.colorScheme = (t.cs ? t.cs : (html.classList.contains('dark') ? 'dark' : 'light'));
+
+    html.setAttribute('data-font', p.font || 'inter');
+    html.setAttribute('data-accent', p.accent || 'emerald');
+
+    // variaveis de leitura (espelham learn.js / learn.css) ANTES do paint
+    var s = html.style;
+    var scale = (+p.fontScale || 100);
+    s.setProperty('--inema-font-scale', (scale / 100).toString());
+    s.setProperty('font-size', scale + '%');               // :root em %, nunca px
+    s.setProperty('--measure', (+p.lineWidth || 68) + 'ch');
+    s.setProperty('--lh-body', (+p.leading || 1.7).toString());
+    var fam = p.font === 'system'
+      ? 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
+      : (p.font === 'leitura'
+        ? '"Atkinson Hyperlegible", "Inter", system-ui, sans-serif'
+        : '"Inter", system-ui, sans-serif');
+    s.setProperty('--font-body', fam);
+
+    var ACC = {
+      emerald: [152, 76, 45], blue: [217, 91, 60], purple: [258, 90, 66],
+      amber: [38, 92, 50], teal: [174, 72, 41], rose: [350, 89, 60]
+    };
+    var a = ACC[p.accent] || ACC.emerald;
+    s.setProperty('--accent-h', a[0] + '');
+    s.setProperty('--accent-s', a[1] + '%');
+    s.setProperty('--accent-l', a[2] + '%');
+    s.setProperty('--accent', 'hsl(' + a[0] + ' ' + a[1] + '% ' + a[2] + '%)');
+  } catch (err) {
+    // qualquer falha => default dark, preserva a marca
+    try { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; } catch (e) {}
+  }
+})();
+</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Separe el marketing del método | Gestión de Agentes de IA · INEMA</title>
+<meta content="Curso de gestión de agentes de IA: intención, contexto, datos, criterio de éxito, autonomía con límites, observación y supervisión humana. Con la Ficha del Agente, galería de casos y proyecto final." name="description"/>
+<meta content="gestao-agentes-7pa-es" name="inema-course"/>
+<meta content="../../" name="course-root"/>
+<script data-inema-manifest="" type="application/json">{"course": "gestao-agentes-7pa-es", "tracks": [{"n": "1", "title": "El punto de quiebre", "modules": [{"id": "1-1", "title": "De la herramienta al equipo", "topics": 6, "href": "curso/trilha1/modulo-1-1.html"}, {"id": "1-2", "title": "Separa el marketing del método", "topics": 6, "href": "curso/trilha1/modulo-1-2.html"}]}, {"n": "2", "title": "Delegar bien", "modules": [{"id": "2-1", "title": "Intención y contexto", "topics": 6, "href": "curso/trilha2/modulo-2-1.html"}, {"id": "2-2", "title": "Datos confiables y criterio de éxito", "topics": 6, "href": "curso/trilha2/modulo-2-2.html"}]}, {"n": "3", "title": "Autonomía y supervisión", "modules": [{"id": "3-1", "title": "Autonomía con límites", "topics": 6, "href": "curso/trilha3/modulo-3-1.html"}, {"id": "3-2", "title": "Observación y supervisión", "topics": 6, "href": "curso/trilha3/modulo-3-2.html"}]}, {"n": "4", "title": "El secreto y el proyecto", "modules": [{"id": "4-1", "title": "El secreto: tú ya sabes esto", "topics": 6, "href": "curso/trilha4/modulo-4-1.html"}, {"id": "4-2", "title": "Proyecto final: tu agente en producción", "topics": 6, "href": "curso/trilha4/modulo-4-2.html"}]}]}</script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="../../assets/course.css" rel="stylesheet"/>
+<link href="../../assets/learn.css" rel="stylesheet"/>
+<link href="../../assets/patches.css" rel="stylesheet"/>
+<link href="https://inematds.github.io/curso-7pa/curso/trilha1/modulo-1-2.html" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha1/modulo-1-2.html" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha1/modulo-1-2.html" hreflang="es" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha1/modulo-1-2.html" hreflang="x-default" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha1/modulo-1-2.html" rel="canonical"/><style id="course-language-css">[data-course-languages]{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:1.25rem;padding:.65rem;justify-content:center;background:#111827;color:#f3f4f6}[data-course-languages] a{color:inherit;font:14px system-ui}[data-course-languages] [aria-current]{font-weight:bold;text-decoration:underline}[data-course-languages] a:focus-visible{outline:2px solid #38bdf8;outline-offset:4px}body{padding-bottom:75px}</style></head>
+<body class="track-1">
+<a class="skip" href="#conteudo">Saltar al contenido</a>
+<nav aria-label="Navegación principal" class="site-nav">
+<div class="wrap nav-row">
+<a aria-label="7 Principios, inicio" class="brand" href="../../index.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 32 32">
+<circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.2"></circle>
+<circle cx="16" cy="16" fill="currentColor" r="3.2"></circle>
+<path d="M16 4v5M16 23v5M4 16h5M23 16h5" stroke="currentColor" stroke-width="2.2"></path>
+</svg>
+<span class="brand-name">7 PRINCIPIOS</span>
+</a>
+<a class="text-sky-400" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span aria-hidden="true" class="nav-sep">-</span>
+<a class="nav-pro text-amber-700 dark:text-slate-300" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+<div class="nav-links">
+<a aria-current="page" class="active" href="../../curso/trilha1/index.html">
+<span class="nav-full">El giro</span>
+<span class="nav-short">T1</span>
+</a>
+<a class="" href="../../curso/trilha2/index.html">
+<span class="nav-full">Delegar bien</span>
+<span class="nav-short">T2</span>
+</a>
+<a class="" href="../../curso/trilha3/index.html">
+<span class="nav-full">Autonomía y supervisión</span>
+<span class="nav-short">T3</span>
+</a>
+<a class="" href="../../curso/trilha4/index.html">
+<span class="nav-full">El secreto y el proyecto</span>
+<span class="nav-short">T4</span>
+</a>
+</div>
+<button aria-label="Alternar tema claro y oscuro" class="theme-toggle" id="theme-toggle">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"></circle>
+<path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2" stroke="currentColor" stroke-width="1.6"></path>
+</svg>
+</button>
+</div>
+</nav>
+<div class="wrap studybar">
+<div class="tools">
+<button data-inema-journey-open="">Mi recorrido</button>
+<button data-course-resume="">Continuar lectura</button>
+<div class="appearance-wrap">
+<button aria-controls="appearance" aria-expanded="false" data-inema-appearance-toggle="#appearance">Apariencia</button>
+<div class="inema-appearance-pop" data-inema-appearance="" data-open="false" id="appearance">
+<h3>Tema</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-theme="inema-dark">Oscuro</button>
+<button aria-pressed="false" data-inema-set-theme="claro">Claro</button>
+<button aria-pressed="false" data-inema-set-theme="sepia">Sepia</button>
+<button aria-pressed="false" data-inema-set-theme="foco">Enfoque</button>
+<button aria-pressed="false" data-inema-set-theme="contraste">Alto contraste</button>
+</div>
+<h3>Fuente</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-font="inter">Inter / sistema</button>
+<button aria-pressed="false" data-inema-set-font="system">Sistema</button>
+<button aria-pressed="false" data-inema-set-font="leitura">Lectura</button>
+</div>
+<h3>Tamaño</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-fontscale="100">100%</button>
+<button aria-pressed="false" data-inema-set-fontscale="112">112%</button>
+<button aria-pressed="false" data-inema-set-fontscale="125">125%</button>
+</div>
+<h3>Ancho de texto</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-linewidth="60">Estrecha</button>
+<button aria-pressed="false" data-inema-set-linewidth="68">Media</button>
+<button aria-pressed="false" data-inema-set-linewidth="75">Ancha</button>
+</div>
+<h3>Entrelineado</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-leading="1.45">Compacta</button>
+<button aria-pressed="false" data-inema-set-leading="1.7">Cómoda</button>
+</div>
+<h3>Ajuste de los controles</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-accent="emerald">Verde</button>
+<button aria-pressed="false" data-inema-set-accent="blue">Azul</button>
+<button aria-pressed="false" data-inema-set-accent="purple">Morado</button>
+<button aria-pressed="false" data-inema-set-accent="amber">Ámbar</button>
+<button aria-pressed="false" data-inema-set-accent="teal">Turquesa</button>
+<button aria-pressed="false" data-inema-set-accent="rose">Rosa</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="Progreso de lectura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="curso" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+</div>
+<noscript>
+<p class="wrap no-script">Puedes leer todas las clases sin JavaScript. El progreso, las notas y los controles de apariencia necesitan JavaScript.</p>
+</noscript>
+<main class="wrap" id="conteudo">
+<div class="breadcrumb">
+<a href="../../index.html">Inicio</a> / <a href="index.html">El giro</a> / Módulo 1.2</div>
+<header class="hero">
+<span class="pill">MÓDULO 1.2</span>
+<h1>Separa el marketing del método</h1>
+<p class="lead">Aprende a filtrar el discurso sobre IA y quedarte con lo que se puede aplicar.</p>
+<p>
+<strong>Al final:</strong> Filtrar cualquier informe sobre IA en 1 minuto y reconocer los 7 principios como un método práctico.</p>
+</header>
+<div class="stats">
+<div class="stat">
+<strong>6</strong>
+<span>temas</span>
+</div>
+<div class="stat">
+<strong>50 min</strong>
+<span>estimación con práctica</span>
+</div>
+<div class="stat">
+<strong>6</strong>
+<span>ejercicios comentados</span>
+</div>
+<div class="stat">
+<strong>1</strong>
+<span>verificación final</span>
+</div>
+</div>
+<div class="reading-layout">
+<aside aria-label="Índice del módulo" class="toc" data-inema-toc="">
+<h2>En este módulo</h2>
+<span data-inema-section-counter="">Sección 1 de 6</span>
+<ol>
+<li>
+<a href="#topico-1">1. Las 3 capas: narrativa, filtro y método</a>
+</li>
+<li>
+<a href="#topico-2">2. Filtrar un informe de IA en 1 minuto</a>
+</li>
+<li>
+<a href="#topico-3">3. La demo no es producción</a>
+</li>
+<li>
+<a href="#topico-4">4. El cuello de botella cambió</a>
+</li>
+<li>
+<a href="#topico-5">5. Ingeniería de contexto: el contexto más pequeño que decide bien</a>
+</li>
+<li>
+<a href="#topico-6">6. Los 7 principios en una página</a>
+</li>
+</ol>
+<div aria-label="Progreso de lectura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="modulo:1-2" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+<p class="muted">Selecciona un fragmento de las explicaciones para resaltarlo o tomar notas.</p>
+</aside>
+<article class="lesson-content" data-inema-module="1-2" data-inema-track="1">
+<section class="lesson" data-inema-topic="modulo-1-2#topico-1" id="topico-1">
+<div class="lesson-head">
+<span class="circle">1</span>
+<h2>Las 3 capas: narrativa, filtro y método</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Narrativa (informe) → Filtro (análisis) → Método (7 principios) → Aplicación mañana" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-2-1-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-2-1-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-2-1-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-2-1-grid)" height="200" width="720"></rect>
+<path d="M179 65 H192 V91 H197" fill="none" marker-end="url(#d1-2-1-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-2-1-glow)" height="72" rx="10" stroke="#34d399" stroke-width="2" width="150" x="25" y="25"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="57.0">Narrativa</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="76.0">(informe)</text>
+</g>
+<path d="M354 91 H367 V117 H372" fill="none" marker-end="url(#d1-2-1-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="200" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="92.0">Filtro (análisis)</text>
+</g>
+<path d="M529 117 H542 V143 H547" fill="none" marker-end="url(#d1-2-1-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="375" y="77"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="109.0">Método (7</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="128.0">principios)</text>
+</g>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="550" y="103"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="144.0">Aplicación mañana</text>
+</g>
+</svg>
+</div>
+<figcaption>De la narrativa al método, cada capa quita volumen y deja solo lo que aplica.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m1-2-t1-p1" id="m1-2-t1-p1">El material de este curso nació de tres textos que son tres capas del mismo tema. El informe es la narrativa: vende la idea, con tono de nueva era. El análisis es el filtro: separa la propaganda de lo que es técnicamente real y admite que son prácticas ya existentes. Los 7 principios son el método: lo que sobra, organizado para usar mañana.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m1-2-t1-p2" id="m1-2-t1-p2">Todo contenido sobre IA mezcla esas capas, y quien no las separa queda entre el entusiasmo y la desconfianza. Separarlas permite aprovechar la parte útil sin comprar la promesa. Esta habilidad sirve para cualquier noticia, charla o propuesta de un proveedor que recibas.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Narrativa</strong>el discurso que vende e inspira.</div>
+<div class="key">
+<strong>Filtro</strong>la pregunta sobre qué es real.</div>
+<div class="key">
+<strong>Método</strong>lo que se puede aplicar mañana.</div>
+<div class="key">
+<strong>Movimiento</strong>cada capa despoja a la anterior.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 1.2.1</span>
+<button data-copy="code-1-2-1">Copiar ejemplo</button>
+</div>
+<pre id="code-1-2-1">
+<code>Objetivo: separar las tres capas de un texto sobre IA que recibiste.
+
+Pega en ChatGPT o Claude, seguido del texto:
+“Divide el texto de abajo en tres partes:
+1. NARRATIVA: frases que venden o inspiran, sin acción concreta.
+2. FILTRO: qué es real y qué es exageración.
+3. MÉTODO: hasta 5 acciones prácticas que puedo aplicar mañana.
+Texto: &lt;pega aquí el texto&gt;”
+
+Cómo verificar: la parte MÉTODO tiene acciones con verbo y objeto, como “definir la fuente oficial de los precios”, y no frases como “abrazar la nueva era”.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Al leer sobre IA, pregunte: ¿qué queda después del filtro?</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Preguntar solo “¿esto es revolucionario?”, que solo lleva a sí o no.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Llévalo a tu agente.</strong> De la narrativa al método, cada capa quita volumen y deja solo lo que aplica. Usa esta idea para revisar la ficha de tu agente antes de avanzar.</aside>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Toma la última noticia o post sobre IA que leíste y escribe una frase de cada capa.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Si la capa de método quedó vacía, el texto era solo narrativa, y está bien saberlo. Si quedó una acción concreta, ese es el valor real del texto.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-2#topico-2" id="topico-2">
+<div class="lesson-head">
+<span class="circle">2</span>
+<h2>Filtrar un informe de IA en 1 minuto</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="¿Quién gana? → Sin adjetivos → ¿Es exclusivo? → Evidencia o demo" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-2-2-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-2-2-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-2-2-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-2-2-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d1-2-2-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-2-2-glow)" height="62" rx="10" stroke="#34d399" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">¿Quién gana?</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d1-2-2-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">Sin adjetivos</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d1-2-2-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">¿Exclusivo?</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="60.0">¿Evidencia o demo?</text>
+</g>
+</svg>
+</div>
+<figcaption>Las cuatro preguntas funcionan en secuencia, como coladores cada vez más finos.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m1-2-t2-p1" id="m1-2-t2-p1">Cuatro preguntas filtran casi cualquier texto sobre IA. ¿Quién gana si yo creo esto? Quitando los adjetivos, ¿qué queda? ¿Esto es exclusivo o es una práctica común con nombre nuevo? ¿Hay evidencia de uso real o solo es una demostración? No es para descalificar al autor, sino para entender el tono.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m1-2-t2-p2" id="m1-2-t2-p2">Palabras como “revolucionario”, “nueva era” y “sin precedentes” no son información. Un proveedor que gana con tu compra puede tener razón, pero tiene motivos para exagerar. Con las cuatro preguntas decides en un minuto si vale la pena leer con calma o si basta con guardar una idea.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Interés</strong>quién gana si yo lo creo.</div>
+<div class="key">
+<strong>Adjetivos</strong>lo que queda sin ellos.</div>
+<div class="key">
+<strong>Novedad</strong>¿exclusivo o práctica común?</div>
+<div class="key">
+<strong>Evidencia</strong>uso real o solo demostración.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 1.2.2</span>
+<button data-copy="code-1-2-2">Copiar ejemplo</button>
+</div>
+<pre id="code-1-2-2">
+<code>Objetivo: pedirle a la IA que filtre un informe o post sobre IA para ti.
+
+Pega en ChatGPT o Claude:
+“Eres un lector crítico y equilibrado. Analiza el texto de abajo con cuatro preguntas y responde cada una en hasta 3 líneas:
+1. ¿Quién gana si yo creo esto?
+2. Quitando los adjetivos (revolucionario, nueva era, sin precedentes), ¿qué queda?
+3. ¿Esto es exclusivo o es una práctica común con otro nombre?
+4. ¿Hay evidencia de uso real (números, casos, período) o solo es una demostración?
+Cierra con: LO QUE VALE APLICAR (hasta 3 ítems) y LO QUE IGNORAR.
+Texto: &lt;pega aquí&gt;”
+
+Cómo verificar: la respuesta distingue relato de evidencia y cita fragmentos del propio texto en cada pregunta.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Del concepto a la acción</h3>
+<ol>
+<li>¿Quién gana?: identificar la condición inicial.</li>
+<li>Sin adjetivos: aplicar la decisión descrita.</li>
+<li>¿Exclusivo?: comprobar el efecto en el ejemplo.</li>
+<li>¿Evidencia o demo?: registrar la evidencia de salida.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Usa las cuatro preguntas antes de pasar un texto sobre IA al equipo.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Tratar una demostración en video como prueba de que funciona en tu negocio.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Aplica las cuatro preguntas a un anuncio de herramienta de IA que te apareció.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Normalmente, la pregunta 4 elimina más cosas: hay mucha demostración y pocos datos de uso real. Esto no impide probar la herramienta, pero indica que la prueba debe ser pequeña y reversible.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-2#topico-3" id="topico-3">
+<div class="lesson-head">
+<span class="circle">3</span>
+<h2>La demo no es producción</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Estable → Repetible → Seguro → Se recupera del error" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-2-3-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-2-3-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-2-3-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-2-3-grid)" height="200" width="720"></rect>
+<path d="M225 100 C310 100 315 34 365 34" fill="none" marker-end="url(#d1-2-3-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 100 365 100" fill="none" marker-end="url(#d1-2-3-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 166 365 166" fill="none" marker-end="url(#d1-2-3-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-2-3-glow)" height="70" rx="10" stroke="#34d399" stroke-width="2" width="205" x="20" y="65"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="122.5" y="105.0">Estable</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="10"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="39.0">Repetible</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="76"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="105.0">Seguro</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="142"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="171.0">Se recupera del error</text>
+</g>
+</svg>
+</div>
+<figcaption>Una demo muestra un acierto; producción exige los cuatro pilares al mismo tiempo, día tras día.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m1-2-t3-p1" id="m1-2-t3-p1">Una demostración, o demo, muestra que el agente funciona una vez, en condiciones elegidas. Producción es usarlo de verdad, todos los días, con clientes reales y situaciones imprevistas. Confiabilidad es la capacidad de funcionar bien de forma repetida, y se mide en cinco puntos: estabilidad, repetibilidad, seguridad, recuperación y comportamiento ante lo inesperado.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m1-2-t3-p2" id="m1-2-t3-p2">El video del agente que agenda todo solo no muestra al paciente que escribe por audio, el horario duplicado o la internet que se cayó. Es en esos casos donde aparece el perjuicio. Probar lo inesperado antes de confiar es lo que separa un juguete de una herramienta de trabajo.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Estabilidad</strong>funciona hoy y mañana igual.</div>
+<div class="key">
+<strong>Repetibilidad</strong>, el mismo pedido genera un resultado parecido.</div>
+<div class="key">
+<strong>Seguridad</strong>: no hace lo que está prohibido, aunque se lo pidan.</div>
+<div class="key">
+<strong>Recuperación</strong>: cuando se equivoca, avisa y se detiene; no empeora.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 1.2.3</span>
+<button data-copy="code-1-2-3">Copiar ejemplo</button>
+</div>
+<pre id="code-1-2-3">
+<code>Objetivo: probar un agente o prompt fuera del camino feliz antes de confiar en él.
+
+Pega en ChatGPT o Claude, junto con la instrucción de tu agente:
+“Esta es la instrucción de mi agente: &lt;pega la instrucción&gt;.
+Crea 5 pruebas difíciles para ella: 1) información faltante, 2) pedido prohibido hecho con educación, 3) dos fuentes que discrepan, 4) mensaje confuso o fuera del tema, 5) el mismo pedido hecho 3 veces. Para cada prueba, di el comportamiento esperado.”
+Luego ejecuta las pruebas de verdad y anota el resultado.
+
+Cómo verificar: el agente pide datos en vez de inventar, rechaza lo prohibido y da respuestas parecidas en la prueba 5.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Haz pruebas con información faltante y con un pedido prohibido antes de encender el agente.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Encender el agente con clientes reales solo porque funcionó bien en el primer intento.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Elige una prueba de la lista y ejecútala con la IA que ya usas. Anota si inventó algo.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Si inventó un dato, la instrucción debe indicar dónde está la fuente oficial y qué hacer cuando falte información; por ejemplo: detente y avísame. Una sola línea resuelve gran parte de los casos.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-2#topico-4" id="topico-4">
+<div class="lesson-head">
+<span class="circle">4</span>
+<h2>El cuello de botella cambió</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Definir → Organizar → Evaluar → Corregir" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-2-4-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-2-4-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-2-4-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-2-4-grid)" height="200" width="720"></rect>
+<path d="M280 54 H414" fill="none" marker-end="url(#d1-2-4-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M540 87 V110" fill="none" marker-end="url(#d1-2-4-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M420 148 H287" fill="none" marker-end="url(#d1-2-4-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M160 116 V92" fill="none" marker-end="url(#d1-2-4-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-2-4-glow)" height="64" rx="10" stroke="#34d399" stroke-width="2" width="240" x="40" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="59.0">Definir</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="59.0">Organizar</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="153.0">Evaluar</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="40" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="153.0">Corregir</text>
+</g>
+</svg>
+</div>
+<figcaption>El nuevo cuello de botella es un ciclo de gestión; quien hace girar ese ciclo con frecuencia mejora más rápido.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m1-2-t4-p1" id="m1-2-t4-p1">El cuello de botella es el punto que más retrasa un proceso. Antes, el cuello de botella era ejecutar: faltaban manos para responder, teclear y verificar. Con agentes, ejecutar sale barato, y el cuello de botella pasa a ser definir la intención, crear el contexto, organizar los datos, evaluar el resultado y corregir el sistema.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m1-2-t4-p2" id="m1-2-t4-p2">Si cambió el cuello de botella, la inversión también tiene que cambiar. Mucha gente compra más herramientas cuando lo que falta es claridad sobre lo que se quiere y datos organizados. Un dueño de tienda que define bien la tabla oficial de precios gana más que otro que cambia de IA todos los meses.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Definir</strong> lo que quieres y por qué.</div>
+<div class="key">
+<strong>Organizar</strong> el contexto y los datos oficiales.</div>
+<div class="key">
+<strong>Evaluar</strong> comprobando contra un criterio combinado.</div>
+<div class="key">
+<strong>Corregir</strong> ajustando una regla a la vez.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 1.2.4</span>
+<button data-copy="code-1-2-4">Copiar ejemplo</button>
+</div>
+<pre id="code-1-2-4">
+<code>Objetivo: descubrir cuál es tu cuello de botella real con IA hoy.
+
+Pega en ChatGPT o Claude:
+“Trabajo como &lt;tu función&gt; y uso IA para &lt;tareas&gt;. Los problemas que más aparecen son: &lt;lista 3&gt;.
+Para cada problema, di si el cuello de botella es: DEFINIR (intención vaga), ORGANIZAR (contexto o datos), EVALUAR (sin criterio) o CORREGIR (error que se repite). Sugiere la acción más pequeña para el mayor cuello de botella.”
+
+Cómo verificar: al menos un problema se clasifica fuera de la ejecución, y la acción sugerida es pequeña, como escribir una regla o señalar una fuente.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Invierte primero en claridad y datos antes de cambiar de herramienta.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Creer que el problema siempre es que el modelo de IA no es lo bastante bueno.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Llévalo a tu agente.</strong> El nuevo cuello de botella es un ciclo de gestión; quien hace girar ese ciclo con frecuencia mejora más rápido. Usa esta idea para revisar la ficha de tu agente antes de avanzar.</aside>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Anota cuánto tiempo dedicas por semana a definir, organizar, evaluar y corregir el trabajo de la IA.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Si casi todo el tiempo se va en corregir, falta criterio de éxito o falta un dato oficial. El tiempo dedicado a definir puede parecer lento, pero es lo que reduce el tiempo de corrección.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-2#topico-5" id="topico-5">
+<div class="lesson-head">
+<span class="circle">5</span>
+<h2>Ingeniería de contexto: el contexto más pequeño que decide bien</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Reglas esenciales → Ejemplos → Estado actual → Cortar el resto" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-2-5-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-2-5-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-2-5-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-2-5-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d1-2-5-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-2-5-glow)" height="74" rx="10" stroke="#34d399" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Reglas esenciales</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d1-2-5-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">Ejemplos</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d1-2-5-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">Estado actual</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Cortar el resto</text>
+</g>
+</svg>
+</div>
+<figcaption>El buen contexto se filtra: entra lo que cambia la decisión, y el resto se queda fuera.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m1-2-t5-p1" id="m1-2-t5-p1">La ingeniería de contexto es elegir con cuidado qué le entregas al agente para que decida bien. Recuerda: el contexto es el conjunto de información que recibe el agente, como reglas, ejemplos e historial. Más contexto no es mejor. El objetivo es el contexto mínimo capaz de producir la mejor decisión.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m1-2-t5-p2" id="m1-2-t5-p2">Cada información adicional cuesta: el modelo cobra por volumen de texto, tarda más y puede confundirse con reglas antiguas o contradictorias. Tirar todo el manual de la empresa dentro del agente suele empeorar la respuesta. Un documento corto con las reglas de la casa vale más que mil mensajes sueltos.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Esencial</strong>: reglas que cambian la decisión.</div>
+<div class="key">
+<strong>Ejemplo</strong>: un caso bueno y un caso malo.</div>
+<div class="key">
+<strong>Estado actual</strong>: la situación de hoy.</div>
+<div class="key">
+<strong>Fuera</strong> de lo que no cambia la decisión.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 1.2.5</span>
+<button data-copy="code-1-2-5">Copiar ejemplo</button>
+</div>
+<pre id="code-1-2-5">
+<code>Objetivo: reducir las instrucciones de tu agente sin perder calidad.
+
+Pega en ChatGPT o Claude:
+“Estas son las instrucciones que le doy a la IA: &lt;pega tus instrucciones&gt;.
+Clasifica cada línea en: ESENCIAL (cambia la decisión), EJEMPLO ÚTIL, ESTADO ACTUAL, o CORTAR (repetida, antigua o que no cambia nada). Luego escribe la versión reducida, con un máximo de 15 líneas.”
+
+Cómo verificar: ejecuta la misma pregunta con la versión larga y la reducida; la versión reducida debe responder igual o mejor.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Del concepto a la acción</h3>
+<ol>
+<li>Reglas esenciales: identificar la condición inicial.</li>
+<li>Ejemplos: aplicar la decisión descrita.</li>
+<li>Estado actual: comprobar el efecto en el ejemplo.</li>
+<li>Cortar el resto: registrar la evidencia de salida.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Guarda las reglas de la casa en un documento corto y revísalas cuando algo cambie.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Pegar todo el historial y todos los manuales, pensando que más siempre es mejor.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Escribe las 5 reglas que explicarías el primer día a alguien que va a hacer tu trabajo. Solo 5.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Limitarlo a 5 te obliga a elegir qué realmente cambia la decisión. Las otras reglas pueden entrar después, si una prueba muestra que hacen falta.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-2#topico-6" id="topico-6">
+<div class="lesson-head">
+<span class="circle">6</span>
+<h2>Los 7 principios en una página</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Definir → Alimentar → Soltar con trabas → Acompañar" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-2-6-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-2-6-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-2-6-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-2-6-grid)" height="200" width="720"></rect>
+<path d="M280 54 H414" fill="none" marker-end="url(#d1-2-6-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M540 87 V110" fill="none" marker-end="url(#d1-2-6-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M420 148 H287" fill="none" marker-end="url(#d1-2-6-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M160 116 V92" fill="none" marker-end="url(#d1-2-6-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-2-6-glow)" height="64" rx="10" stroke="#34d399" stroke-width="2" width="240" x="40" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="59.0">Definir</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="59.0">Alimentar</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="153.0">Soltar con trabas</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="40" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="153.0">Hacer seguimiento</text>
+</g>
+</svg>
+</div>
+<figcaption>Los siete principios se agrupan en cuatro movimientos que giran en ciclo, siempre volviendo a la intención.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m1-2-t6-p1" id="m1-2-t6-p1">Los 7 principios son el método de este curso: intención, contexto, datos confiables, criterio de éxito, autonomía con límites, observación y supervisión humana. Cada uno responde a una pregunta que harías a un empleado nuevo. Forman un ciclo: lo que aprendes supervisando vuelve para ajustar la intención.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m1-2-t6-p2" id="m1-2-t6-p2">Tener el mapa completo en una página ayuda a ubicar cada módulo de las próximas trilhas y a diagnosticar problemas. Si ya gestionaste personas, ya conoces casi todo eso con otro nombre. La diferencia es que el agente no inventa en el aire lo que tú olvidaste decir.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Definir</strong> intención y contexto.</div>
+<div class="key">
+<strong>Alimentar</strong> datos confiables y criterio de éxito.</div>
+<div class="key">
+<strong>Soltar con trabas</strong>: autonomía con límites.</div>
+<div class="key">
+<strong>Acompañar</strong> la observación y la supervisión humana.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 1.2.6</span>
+<button data-copy="code-1-2-6">Copiar ejemplo</button>
+</div>
+<pre id="code-1-2-6">
+<code>Objetivo: tener el mapa de los 7 principios a mano y usarlo como lista de verificación para cualquier delegación.
+
+1 Intención — ¿Qué quieres sacar de encima y por qué? — Antes de delegar, define el propósito.
+2 Contexto — ¿Qué le explicarías el 1er día a alguien recién contratado? — El contexto mínimo capaz de tomar la mejor decisión.
+3 Datos confiables — ¿De dónde proviene la información correcta? ¿Quién manda cuando dos fuentes discrepan? — Ningún agente es mejor que sus datos.
+4 Criterio de éxito — ¿Cómo es un día en que esto quedó perfecto? — Toda delegación necesita éxito definido.
+5 Autonomía con límites — ¿Qué no puede hacer solo? — La autonomía crece con evidencia y control.
+6 Observación — ¿Qué quieres ver para saber si va bien? — Lo que no se observa no mejora.
+7 Supervisión humana — ¿Cuándo te llama? ¿Cuándo revisas? — Los agentes amplían; no eliminan el juicio.
+
+Para aplicar: https://inematds.github.io/7pa/es/ · explicación: https://inematds.github.io/7pa/guia/es/ · detrás de los textos: https://inematds.github.io/7pa-segredo/es/
+
+Cómo verificar: toma una tarea tuya y responde las 7 preguntas en una línea cada una; si alguna quedó en blanco, ese es el punto débil de la delegación.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Usa las 7 preguntas como lista de verificación antes de encender cualquier agente.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Tratar los principios como una lista para memorizar en vez de como preguntas para responder.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Responde las 7 preguntas para la tarea que elegiste en el módulo anterior: una línea cada una.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Es común atascarse con los datos y con el criterio de éxito: son los principios los que requieren tu decisión, no de la IA. Estos dos puntos se profundizarán en las próximas rutas.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="quiz" data-inema-check="q-1-2">
+<span class="eyebrow">VERIFICACIÓN SIN BLOQUEO</span>
+<h2>Revise su comprensión</h2>
+<p>Un informe dice que cierta plataforma trae “una revolución sin precedentes en la gestión de agentes”. ¿Cuál es la actitud más útil?</p>
+<div class="quiz-options">
+<button data-inema-check-option="0">Adoptar la plataforma de inmediato, antes que la competencia.</button>
+<button data-inema-check-option="1">Desechar todo, porque el informe de la empresa es solo propaganda.</button>
+<button data-inema-check-option="2">Quitar los adjetivos, preguntar quién gana si te lo crees y buscar evidencia de uso real.</button>
+</div>
+<div aria-live="polite" data-inema-check-feedback="" role="status">
+</div>
+</section>
+<section class="module-summary">
+<h2>¿Qué se lleva de este módulo?</h2>
+<p>Filtrar cualquier informe sobre IA en 1 minuto y reconocer los 7 principios como un método práctico.</p>
+<ul>
+<li>Las 3 capas: narrativa, filtro y método.</li>
+<li>Filtrar un informe de IA en 1 minuto.</li>
+<li>Demo no es producción.</li>
+<li>El cuello de botella cambió.</li>
+<li>Ingeniería de contexto: el contexto mínimo que decide bien.</li>
+<li>Los 7 principios en una página.</li>
+</ul>
+<p>Próxima acción: aplique lo que aprendió en la ficha de su agente y anote qué aún necesita revisión.</p>
+</section>
+<div class="actions">
+<a class="btn" href="index.html">← Mapa de la ruta</a>
+<a class="btn cta" href="../trilha2/modulo-2-1.html">Próximo: Intención y contexto →</a>
+</div>
+</article>
+</div>
+<p class="muted">Referencia de este módulo: materiales del proyecto 7PA y <a href="../../index.html#fontes">fuentes y criterios editoriales del curso</a>.</p>
+</main>
+<footer>
+<div class="wrap">Gestión de Agentes de IA: los 7 principios · INEMA.CLUB · v1.0.0 · Curso en portugués<br/>Material educativo original del proyecto 7PA. Progreso guardado en este navegador; exporte una copia en Mi recorrido.<br/>
+<a href="../../index.html#fontes">Fuentes y criterios editoriales</a> · <a href="https://inematds.github.io/7pa/es/" rel="noopener" target="_blank">Ficha del Agente</a> · <a download="" href="../../materiais/entrevistador.md">Prompt entrevistador</a>
+</div>
+</footer>
+<dialog aria-label="Lectura del módulo" id="module-modal">
+<button data-close-modal="">Cerrar módulo</button>
+<iframe title="Contenido completo del módulo">
+</iframe>
+</dialog>
+<script id="quiz-data" type="application/json">{"id": "q-1-2", "q": "Un informe dice que cierta plataforma trae “una revolución sin precedentes en la gestión de agentes”. ¿Cuál es la actitud más útil?", "options": ["Adoptar la plataforma de inmediato, antes que la competencia.", "Desechar todo, porque el informe de la empresa es solo propaganda.", "Quitar los adjetivos, preguntar quién gana si te lo crees y buscar evidencia de uso real."], "answer": "2", "explain": {"0": "Ni creer en todo ni descartar todo: el filtro separa la narrativa de lo que es útil técnicamente. Casi siempre queda una práctica ya conocida con un nombre nuevo, y puede ser valiosa.", "1": "Ni creer en todo ni descartar todo: el filtro separa la narrativa de lo que es útil técnicamente. Casi siempre queda una práctica ya conocida con un nombre nuevo, y puede ser valiosa.", "2": "Ni creer en todo ni descartar todo: el filtro separa la narrativa de lo que es útil técnicamente. Casi siempre queda una práctica ya conocida con un nombre nuevo, y puede ser valiosa."}}</script>
+<script src="../../assets/learn.js">
+</script>
+<script src="../../assets/course.js">
+</script>
+<nav aria-label="Idioma del curso" data-course-languages=""><a href="../../../curso/trilha1/modulo-1-2.html" hreflang="pt-BR" lang="pt-BR">Português</a><a href="../../../en/curso/trilha1/modulo-1-2.html" hreflang="en" lang="en">English</a><a aria-current="page" href="modulo-1-2.html" hreflang="es" lang="es">Español</a></nav><script data-course-language-hash="">document.querySelectorAll('[data-course-languages] a').forEach(function(a){a.addEventListener('click',function(){a.href=a.getAttribute('href').split('#')[0]+location.hash;});});</script></body>
+</html>

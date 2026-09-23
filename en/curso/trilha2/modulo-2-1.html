@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<script>
+(function () {
+  try {
+    var html = document.documentElement;
+    var DEF = { theme: 'inema-dark', font: 'inter', fontScale: 100, lineWidth: 68, leading: 1.7, accent: 'emerald' };
+    function clone(o) { var r = {}; for (var x in o) r[x] = o[x]; return r; }
+    var p = clone(DEF);
+    try {
+      var raw = localStorage.getItem('inema.prefs');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          for (var k in DEF) if (parsed[k] != null) p[k] = parsed[k];
+        }
+      } else {
+        // fallback ao tema legado do v1
+        var legacy = localStorage.getItem('theme');
+        if (legacy === 'light') p.theme = 'claro';
+        else if (legacy === 'dark') p.theme = 'inema-dark';
+      }
+    } catch (e) { p = clone(DEF); }
+
+    // mapa tema -> (.dark on/off, data-theme, color-scheme)
+    var THEMES = {
+      'inema-dark': { dark: true,  attr: null,        cs: 'dark'  },
+      'claro':      { dark: false, attr: null,        cs: 'light' },
+      'sepia':      { dark: false, attr: 'sepia',     cs: 'light' },
+      'foco':       { dark: null,  attr: 'foco',      cs: null    },  // herda eixo atual
+      'contraste':  { dark: true,  attr: 'contraste', cs: 'dark'  }
+    };
+    var t = THEMES[p.theme] || THEMES['inema-dark'];
+
+    if (t.dark === true) html.classList.add('dark');
+    else if (t.dark === false) html.classList.remove('dark');
+    // 'foco' (null) preserva o que ja houver no atributo class do <html>
+
+    if (t.attr) html.setAttribute('data-theme', t.attr);
+    else html.removeAttribute('data-theme');
+
+    html.style.colorScheme = (t.cs ? t.cs : (html.classList.contains('dark') ? 'dark' : 'light'));
+
+    html.setAttribute('data-font', p.font || 'inter');
+    html.setAttribute('data-accent', p.accent || 'emerald');
+
+    // variaveis de leitura (espelham learn.js / learn.css) ANTES do paint
+    var s = html.style;
+    var scale = (+p.fontScale || 100);
+    s.setProperty('--inema-font-scale', (scale / 100).toString());
+    s.setProperty('font-size', scale + '%');               // :root em %, nunca px
+    s.setProperty('--measure', (+p.lineWidth || 68) + 'ch');
+    s.setProperty('--lh-body', (+p.leading || 1.7).toString());
+    var fam = p.font === 'system'
+      ? 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
+      : (p.font === 'leitura'
+        ? '"Atkinson Hyperlegible", "Inter", system-ui, sans-serif'
+        : '"Inter", system-ui, sans-serif');
+    s.setProperty('--font-body', fam);
+
+    var ACC = {
+      emerald: [152, 76, 45], blue: [217, 91, 60], purple: [258, 90, 66],
+      amber: [38, 92, 50], teal: [174, 72, 41], rose: [350, 89, 60]
+    };
+    var a = ACC[p.accent] || ACC.emerald;
+    s.setProperty('--accent-h', a[0] + '');
+    s.setProperty('--accent-s', a[1] + '%');
+    s.setProperty('--accent-l', a[2] + '%');
+    s.setProperty('--accent', 'hsl(' + a[0] + ' ' + a[1] + '% ' + a[2] + '%)');
+  } catch (err) {
+    // qualquer falha => default dark, preserva a marca
+    try { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; } catch (e) {}
+  }
+})();
+</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Intention and context | AI Agent Management · INEMA</title>
+<meta content="AI agent management course: intention, context, data, success criteria, autonomy with limits, observation, and human supervision. With the Agent Sheet, a case gallery, and a final project." name="description"/>
+<meta content="gestao-agentes-7pa-en" name="inema-course"/>
+<meta content="../../" name="course-root"/>
+<script data-inema-manifest="" type="application/json">{"course": "gestao-agentes-7pa-en", "tracks": [{"n": "1", "title": "The turning point", "modules": [{"id": "1-1", "title": "From tool to team", "topics": 6, "href": "curso/trilha1/modulo-1-1.html"}, {"id": "1-2", "title": "Separate marketing from the method", "topics": 6, "href": "curso/trilha1/modulo-1-2.html"}]}, {"n": "2", "title": "Delegate well", "modules": [{"id": "2-1", "title": "Intention and context", "topics": 6, "href": "curso/trilha2/modulo-2-1.html"}, {"id": "2-2", "title": "Reliable data and success criteria", "topics": 6, "href": "curso/trilha2/modulo-2-2.html"}]}, {"n": "3", "title": "Autonomy and supervision", "modules": [{"id": "3-1", "title": "Autonomy with limits", "topics": 6, "href": "curso/trilha3/modulo-3-1.html"}, {"id": "3-2", "title": "Observation and supervision", "topics": 6, "href": "curso/trilha3/modulo-3-2.html"}]}, {"n": "4", "title": "The secret and the project", "modules": [{"id": "4-1", "title": "The secret: you already know this", "topics": 6, "href": "curso/trilha4/modulo-4-1.html"}, {"id": "4-2", "title": "Final project: your agent in production", "topics": 6, "href": "curso/trilha4/modulo-4-2.html"}]}]}</script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="../../assets/course.css" rel="stylesheet"/>
+<link href="../../assets/learn.css" rel="stylesheet"/>
+<link href="../../assets/patches.css" rel="stylesheet"/>
+<link href="https://inematds.github.io/curso-7pa/curso/trilha2/modulo-2-1.html" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha2/modulo-2-1.html" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha2/modulo-2-1.html" hreflang="es" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha2/modulo-2-1.html" hreflang="x-default" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha2/modulo-2-1.html" rel="canonical"/><style id="course-language-css">[data-course-languages]{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:1.25rem;padding:.65rem;justify-content:center;background:#111827;color:#f3f4f6}[data-course-languages] a{color:inherit;font:14px system-ui}[data-course-languages] [aria-current]{font-weight:bold;text-decoration:underline}[data-course-languages] a:focus-visible{outline:2px solid #38bdf8;outline-offset:4px}body{padding-bottom:75px}</style></head>
+<body class="track-2">
+<a class="skip" href="#conteudo">Jump to content</a>
+<nav aria-label="Main navigation" class="site-nav">
+<div class="wrap nav-row">
+<a aria-label="7 Principles, start" class="brand" href="../../index.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 32 32">
+<circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.2"></circle>
+<circle cx="16" cy="16" fill="currentColor" r="3.2"></circle>
+<path d="M16 4v5M16 23v5M4 16h5M23 16h5" stroke="currentColor" stroke-width="2.2"></path>
+</svg>
+<span class="brand-name">7 PRINCIPLES</span>
+</a>
+<a class="text-sky-400" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span aria-hidden="true" class="nav-sep">-</span>
+<a class="nav-pro text-amber-700 dark:text-slate-300" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+<div class="nav-links">
+<a class="" href="../../curso/trilha1/index.html">
+<span class="nav-full">The turning point</span>
+<span class="nav-short">T1</span>
+</a>
+<a aria-current="page" class="active" href="../../curso/trilha2/index.html">
+<span class="nav-full">Delegate well</span>
+<span class="nav-short">T2</span>
+</a>
+<a class="" href="../../curso/trilha3/index.html">
+<span class="nav-full">Autonomy and supervision</span>
+<span class="nav-short">T3</span>
+</a>
+<a class="" href="../../curso/trilha4/index.html">
+<span class="nav-full">The secret and the project</span>
+<span class="nav-short">T4</span>
+</a>
+</div>
+<button aria-label="Toggle light and dark theme" class="theme-toggle" id="theme-toggle">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"></circle>
+<path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2" stroke="currentColor" stroke-width="1.6"></path>
+</svg>
+</button>
+</div>
+</nav>
+<div class="wrap studybar">
+<div class="tools">
+<button data-inema-journey-open="">My learning journey</button>
+<button data-course-resume="">Continue reading</button>
+<div class="appearance-wrap">
+<button aria-controls="appearance" aria-expanded="false" data-inema-appearance-toggle="#appearance">Appearance</button>
+<div class="inema-appearance-pop" data-inema-appearance="" data-open="false" id="appearance">
+<h3>Theme</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-theme="inema-dark">Dark</button>
+<button aria-pressed="false" data-inema-set-theme="claro">Light</button>
+<button aria-pressed="false" data-inema-set-theme="sepia">Sepia</button>
+<button aria-pressed="false" data-inema-set-theme="foco">Focus</button>
+<button aria-pressed="false" data-inema-set-theme="contraste">High contrast</button>
+</div>
+<h3>Source</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-font="inter">Inter / system</button>
+<button aria-pressed="false" data-inema-set-font="system">System</button>
+<button aria-pressed="false" data-inema-set-font="leitura">Reading</button>
+</div>
+<h3>Size</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-fontscale="100">100%</button>
+<button aria-pressed="false" data-inema-set-fontscale="112">112%</button>
+<button aria-pressed="false" data-inema-set-fontscale="125">125%</button>
+</div>
+<h3>Text width</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-linewidth="60">Narrow</button>
+<button aria-pressed="false" data-inema-set-linewidth="68">Medium</button>
+<button aria-pressed="false" data-inema-set-linewidth="75">Wide</button>
+</div>
+<h3>Between the lines</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-leading="1.45">Compact</button>
+<button aria-pressed="false" data-inema-set-leading="1.7">Comfortable</button>
+</div>
+<h3>Control accent</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-accent="emerald">Green</button>
+<button aria-pressed="false" data-inema-set-accent="blue">Blue</button>
+<button aria-pressed="false" data-inema-set-accent="purple">Purple</button>
+<button aria-pressed="false" data-inema-set-accent="amber">Amber</button>
+<button aria-pressed="false" data-inema-set-accent="teal">Turquoise</button>
+<button aria-pressed="false" data-inema-set-accent="rose">Pink</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="Reading progress" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="curso" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 of 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+</div>
+<noscript>
+<p class="wrap no-script">You can read all lessons without JavaScript. Progress, grades, and appearance controls require JavaScript.</p>
+</noscript>
+<main class="wrap" id="conteudo">
+<div class="breadcrumb">
+<a href="../../index.html">Start</a> / <a href="index.html">Delegate well</a> / Module 2.1</div>
+<header class="hero">
+<span class="pill">MODULE 2.1</span>
+<h1>Intention and context</h1>
+<p class="lead">Tell the agent what to achieve, why it matters, and what it needs to know on day one.</p>
+<p>
+<strong>By the end:</strong> Write the mission, the tie-break rule, and the “house rules” block of an agent, ready to paste into ChatGPT or Claude.</p>
+</header>
+<div class="stats">
+<div class="stat">
+<strong>6</strong>
+<span>topics</span>
+</div>
+<div class="stat">
+<strong>50 min</strong>
+<span>estimate with hands-on practice</span>
+</div>
+<div class="stat">
+<strong>6</strong>
+<span>commented exercises</span>
+</div>
+<div class="stat">
+<strong>1</strong>
+<span>final check</span>
+</div>
+</div>
+<div class="reading-layout">
+<aside aria-label="Module index" class="toc" data-inema-toc="">
+<h2>In this module</h2>
+<span data-inema-section-counter="">Section 1 of 6</span>
+<ol>
+<li>
+<a href="#topico-1">1. Intention: the mission and the why</a>
+</li>
+<li>
+<a href="#topico-2">2. One task per agent</a>
+</li>
+<li>
+<a href="#topico-3">3. When priorities clash</a>
+</li>
+<li>
+<a href="#topico-4">4. Context: what you would explain on day one</a>
+</li>
+<li>
+<a href="#topico-5">5. The smallest context that leads to good decisions</a>
+</li>
+<li>
+<a href="#topico-6">6. Examples are worth more than adjectives</a>
+</li>
+</ol>
+<div aria-label="Reading progress" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="modulo:2-1" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 of 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+<p class="muted">Select a portion of the explanations to highlight or take notes.</p>
+</aside>
+<article class="lesson-content" data-inema-module="2-1" data-inema-track="2">
+<section class="lesson" data-inema-topic="modulo-2-1#topico-1" id="topico-1">
+<div class="lesson-head">
+<span class="circle">1</span>
+<h2>Intention: the mission and the why</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Task → Why → Expected result → Criterion in case of doubt" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-1-1-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-1-1-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-1-1-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-1-1-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d2-1-1-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-1-1-glow)" height="74" rx="10" stroke="#60a5fa" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Task</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d2-1-1-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">Why</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d2-1-1-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">Expected result</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Criterion when in doubt</text>
+</g>
+</svg>
+</div>
+<figcaption>The mission moves from the task down to the doubt criterion: it’s the why that turns an order into a decision.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m2-1-t1-p1" id="m2-1-t1-p1">Intention is the first thing an agent needs to receive: what should be achieved and why it matters. The task tells what to do; the why tells what to protect when a case shows up that you didn’t anticipate. In the Agent Sheet, this is the field “What do you want to take out of your hands? Why does that matter?”. An agent with the right task and no why executes well the wrong thing.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m2-1-t1-p2" id="m2-1-t1-p2">No instruction covers all cases. When a doubt arises, the agent needs a criterion to choose, and the why is that criterion. In a clinic, “confirming consults” without a reason turns into sending a message and done; with “30% of patients don’t show up and the schedule stays empty,” it understands that the important thing is knowing who won’t come in time to fit someone else in.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Task</strong>the concrete action, with a verb and an object.</div>
+<div class="key">
+<strong>Why</strong>the real problem that the task solves.</div>
+<div class="key">
+<strong>Result</strong>what changes when it works.</div>
+<div class="key">
+<strong>Priority</strong>what to protect when there’s uncertainty.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 2.1.1</span>
+<button data-copy="code-2-1-1">Copy example</button>
+</div>
+<pre id="code-2-1-1">
+<code>Goal: give the agent the mission and the reason, so they can decide well in unexpected cases.
+
+## Your mission
+&lt;task, e.g.: Confirm the consultations from the next day via WhatsApp&gt;.
+This matters because: &lt;real issue, e.g.: 30% of patients don’t show up without notice and the calendar is left empty&gt;.
+When you’re in doubt, prioritize this.
+
+Before you start, confirm in 3 lines what you understood about your mission.
+
+How to check: read the 3-line confirmation. If they don’t repeat the reason in their own words, the mission is still too vague.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Write the why as a painful problem, with a number if you have one: “I lose 2 hours a day”.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Use generic whys like “improve customer service,” which don’t help you decide anything.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Take it to your agent.</strong> The mission goes down from the task to the doubt criterion: the “why” is what turns an order into a decision. Use this idea to review your agent sheet before moving on.</aside>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Choose a task you want to delegate and write the mission in two lines: the task and the why.</p>
+<details>
+<summary>View commented answer</summary>
+<p>Store example: “Reply to customers about order status. This matters because I lose 2 hours a day with the same question and the customer keeps waiting.” The why shows the response has to be fast and correct, not just a nice-sounding text.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-1#topico-2" id="topico-2">
+<div class="lesson-head">
+<span class="circle">2</span>
+<h2>One task per agent</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Take care of the business → Service/Support → Order status → Response sent" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-1-2-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-1-2-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-1-2-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-1-2-grid)" height="200" width="720"></rect>
+<path d="M225 100 C310 100 315 34 365 34" fill="none" marker-end="url(#d2-1-2-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 100 365 100" fill="none" marker-end="url(#d2-1-2-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 166 365 166" fill="none" marker-end="url(#d2-1-2-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-1-2-glow)" height="70" rx="10" stroke="#60a5fa" stroke-width="2" width="205" x="20" y="65"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="122.5" y="105.0">Take care of the business</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="10"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="39.0">Customer service</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="76"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="105.0">Order status</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="142"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="171.0">Response sent</text>
+</g>
+</svg>
+</div>
+<figcaption>The tree shows how a large order is broken down until it reaches a small enough task to delegate and verify.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m2-1-t2-p1" id="m2-1-t2-p1">Scope is the size of the work you deliver: where the task starts and where it ends. “Taking care of my business” isn’t a task—it’s a whole job with dozens of different decisions. A good agent gets only one task, with clear input and output, like “check the month’s documents and list what’s missing.”</p>
+<h3>Why learn</h3>
+<p data-inema-block="m2-1-t2-p2" id="m2-1-t2-p2">When an agent does five things and gets some wrong, you don’t know which part failed. With one task per agent, each mistake has an address, each test is simple, and each autonomy level can be different: what only answers questions can have more freedom than what handles money.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Employment</strong>the big whole set, like serving customers.</div>
+<div class="key">
+<strong>Process</strong>a part with a beginning and an end, like after-sales.</div>
+<div class="key">
+<strong>Task</strong>a repeatable action, like updating order status.</div>
+<div class="key">
+<strong>Delivery</strong>what comes out at the end, like the sent response.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 2.1.2</span>
+<button data-copy="code-2-1-2">Copy example</button>
+</div>
+<pre id="code-2-1-2">
+<code>Goal: split a big request into tasks that you can delegate one at a time.
+
+Big request: &lt;e.g.: handle store customer service&gt;
+
+Delegate-able tasks (one per agent):
+1. &lt;e.g.: respond to order status and delivery time&gt;
+2. &lt;e.g.: answer exchange questions within 7 days&gt;
+3. &lt;e.g.: compile the daily summary of the most common questions&gt;
+
+Stay with me (not delegating yet):
+- &lt;e.g.: refunds, discounts, complaints&gt;
+
+How to check: each task on the list fits into a single sentence with a verb, has an output you can see, and doesn’t depend on you approving money.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>From concept to action</h3>
+<ol>
+<li>Take care of the business: identify the initial condition.</li>
+<li>Customer service: apply the described decision.</li>
+<li>Order status: check the effect in the example.</li>
+<li>Response sent: record the output evidence.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Start with the most repeated, lowest-risk task, and only then create the second agent.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Set up an “all-purpose agent” with a giant instruction that nobody can test.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Take one area of your work and split it into three delegable tasks and one that stays with you.</p>
+<details>
+<summary>View commented answer</summary>
+<p>Accountant office example: check documents received; list what’s missing by customer; set up the reminder for pending items. Stays with you: talk to the customer about the fine. The one that stays is always the one with the highest risk or the one that requires judgment.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-1#topico-3" id="topico-3">
+<div class="lesson-head">
+<span class="circle">3</span>
+<h2>When priorities clash</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Conflict appears → Apply the tie-breaker → Log the case → Adjust the rule" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-1-3-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-1-3-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-1-3-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-1-3-grid)" height="200" width="720"></rect>
+<path d="M280 54 H414" fill="none" marker-end="url(#d2-1-3-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M540 87 V110" fill="none" marker-end="url(#d2-1-3-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M420 148 H287" fill="none" marker-end="url(#d2-1-3-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M160 116 V92" fill="none" marker-end="url(#d2-1-3-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-1-3-glow)" height="64" rx="10" stroke="#60a5fa" stroke-width="2" width="240" x="40" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="59.0">Conflict shows up</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="59.0">Apply the tiebreaker</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="153.0">Record the case</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="40" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="153.0">Adjust the rule</text>
+</g>
+</svg>
+</div>
+<figcaption>The cycle shows that the tiebreak rule is born from a conflict, is applied, generates a log entry, and is adjusted by real cases.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m2-1-t3-p1" id="m2-1-t3-p1">Every real task has priorities that clash: speed versus accuracy, friendliness versus firmness, doing everything versus doing it right. The tie-break rule is a sentence that says which priority wins when the two can’t both fit together. It’s written in the instruction, not in your head.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m2-1-t3-p2" id="m2-1-t3-p2">Without a tie-break, the agent chooses on its own, and the choice changes from day to day. A support agent who answers quickly with an invented deadline pleases today and creates complaints tomorrow. Writing the order of priorities makes behavior predictable and easier to correct.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Conflict</strong>two good things that can’t fit together.</div>
+<div class="key">
+<strong>Winner</strong>the priority that wins, written out in full.</div>
+<div class="key">
+<strong>Action in uncertainty</strong>what to do when no rule resolves it.</div>
+<div class="key">
+<strong>Review</strong>adjust the rule when a real case shows it failed.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>COMMENTED EXAMPLE · 2.1.3</span>
+<button data-copy="code-2-1-3">Copy example</button>
+</div>
+<pre id="code-2-1-3">
+<code>Goal: tell the agent which priority wins when two conflict.
+
+## When priorities conflict
+- &lt;priority A, e.g.: Precision&gt; comes before &lt;priority B, e.g.: speed&gt;.
+  In practice: &lt;e.g.: I’d rather respond within 1 hour with the correct deadline than within 1 minute with a guessed deadline&gt;.
+- &lt;priority C, e.g.: follow the house rules&gt; comes before &lt;priority D, e.g.: please the customer&gt;.
+- If no rule resolves it: don’t decide alone—call me and tell me what the conflict was.
+
+How to check: invent a case where both priorities conflict and check whether the agent picks the one you wrote first.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Write the tiebreaker using a concrete example from your business right below it.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ List ten priorities that are “all important” without saying which one wins.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Write a tiebreak rule for your agent in the format “X comes before Y” and provide an example.</p>
+<details>
+<summary>View commented answer</summary>
+<p>Professor example: “Fairness to the student comes before finishing fast: if the writing is illegible or off-topic, mark review and don’t give a grade.” Notice that the rule says what to do, not only what to value.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-1#topico-4" id="topico-4">
+<div class="lesson-head">
+<span class="circle">4</span>
+<h2>Context: what you’d explain on the first day</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="House rules → Tone of voice → Time windows → Never say" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-1-4-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-1-4-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-1-4-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-1-4-grid)" height="200" width="720"></rect>
+<path d="M179 65 H192 V91 H197" fill="none" marker-end="url(#d2-1-4-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-1-4-glow)" height="72" rx="10" stroke="#60a5fa" stroke-width="2" width="150" x="25" y="25"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="66.0">House rules</text>
+</g>
+<path d="M354 91 H367 V117 H372" fill="none" marker-end="url(#d2-1-4-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="200" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="92.0">Tone of voice</text>
+</g>
+<path d="M529 117 H542 V143 H547" fill="none" marker-end="url(#d2-1-4-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="375" y="77"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="118.0">Hours</text>
+</g>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="550" y="103"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="144.0">Never say</text>
+</g>
+</svg>
+</div>
+<figcaption>The layers show what the agent needs to hear on the first day, from the most general to the most specific.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m2-1-t4-p1" id="m2-1-t4-p1">Context is everything the agent needs to know about your environment to decide well: house rules, tone, schedules, what you never say to the customer. The best way to gather this is to imagine the first day of a new employee—what, in a company, is called onboarding, the integration of whoever is arriving. What you’d explain at the door, the agent also needs to hear.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m2-1-t4-p2" id="m2-1-t4-p2">The agent doesn’t know your clinic, your store, or your team. Without the house rules, it fills the gap with the internet’s default: it messages on Saturday, calls the patient for you, promises what it can’t. A short block of rules prevents most of those silly mistakes.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>House rules</strong>what always applies here.</div>
+<div class="key">
+<strong>Think</strong>about how you talk to people.</div>
+<div class="key">
+<strong>Hours</strong>when you can act and when you can’t.</div>
+<div class="key">
+<strong>Never say</strong>topics that aren’t his.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXAMPLE WITH COMMENTARY · 2.1.4</span>
+<button data-copy="code-2-1-4">Copy example</button>
+</div>
+<pre id="code-2-1-4">
+<code>Goal: give the agent what you would explain to a new employee on day one.
+
+## House rules
+- &lt;e.g.: address people as sir or ma’am&gt;
+- &lt;e.g.: messages only between 9:00 and 17:00&gt;
+- &lt;e.g.: Saturday has no appointments&gt;
+- &lt;e.g.: don’t discuss prices; that’s with me&gt;
+- Tone: &lt;e.g.: polite, short, no slang&gt;.
+
+Ready sheet to compare: https://inematds.github.io/7pa/en/?preset=clinica
+
+How to check: ask the agent to write a message on a Saturday at 8:00 PM and see if they refuse based on the time.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Write the rules as short sentences that a new employee would understand without having to ask.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Paste the entire company manual and expect the agent to find what matters.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Take it to your agent.</strong> The layers show what the agent needs to hear on day one, from the most general to the most specific. Use this idea to review your agent sheet before moving on.</aside>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>List five things you would tell someone on the first day doing the task you want to delegate.</p>
+<details>
+<summary>View commented answer</summary>
+<p>A good list mixes rule, tone, and limits. Real estate example: don’t share the exact address before the visit, respond within up to 1 hour, upbeat and to-the-point tone, don’t negotiate the price, visits only during business hours.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-1#topico-5" id="topico-5">
+<div class="lesson-head">
+<span class="circle">5</span>
+<h2>The smallest context that makes a good decision</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Put everything together → Does it change the decision? → Cut the rest → Test without" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-1-5-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-1-5-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-1-5-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-1-5-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d2-1-5-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-1-5-glow)" height="74" rx="10" stroke="#60a5fa" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Put it together</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d2-1-5-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">Does it change the decision?</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d2-1-5-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">Cut the rest</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Test without</text>
+</g>
+</svg>
+</div>
+<figcaption>The flow shows the context filter: only what changes some decision the agent makes gets through.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m2-1-t5-p1" id="m2-1-t5-p1">More context isn’t better context. Context engineering is choosing what goes into the agent’s instruction and cutting the rest. The cutting question is simple: does this information change any of its decisions? If it doesn’t, it goes out.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m2-1-t5-p2" id="m2-1-t5-p2">Too-long instructions hide important rules in the middle of text that doesn’t matter, and the agent starts giving the same weight to the company’s history and the rule about not talking about price. A lean context is easier to read, test, and fix when something goes wrong.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Bring</strong>together and list everything that seems relevant.</div>
+<div class="key">
+<strong>Ask</strong>does this change any decision the agent makes?</div>
+<div class="key">
+<strong>Cut</strong>remove what changes nothing.</div>
+<div class="key">
+<strong>Test</strong>to see if it still makes the right decision without what you removed.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXAMPLE WITH COMMENTARY · 2.1.5</span>
+<button data-copy="code-2-1-5">Copy example</button>
+</div>
+<pre id="code-2-1-5">
+<code>Goal: trim the agent instruction, keeping only what changes decisions.
+
+For each line of your instruction, answer:
+- Line: &lt;e.g.: The clinic was founded in 1998&gt;
+  Does it change any agent decision? &lt;no&gt; → CUT
+- Line: &lt;e.g.: Saturday has no appointments&gt;
+  Does it change any agent decision? &lt;yes, doesn’t confirm an appointment on Saturday&gt; → KEEP
+
+How to check: run the same request with the old instruction and with the trimmed one. If the answer is still correct, the cut was a good one.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>From concept to action</h3>
+<ol>
+<li>Bring everything together: identify the initial condition.</li>
+<li>Does it change the decision?: apply the described decision.</li>
+<li>Cut the rest: check the effect in the example.</li>
+<li>Test without: record the output evidence.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Cut one line at a time and test, to see which cut made the difference.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Keep the text “just to be safe,” as an institutional mission and company history.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Take an instruction you already use and, line by line, mark what changes a decision and what doesn’t.</p>
+<details>
+<summary>View commented answer</summary>
+<p>Usually a third of the instruction comes out. What remains is rules, limits, and the source of the data; presentations, praise, and explanations that the agent doesn’t use get removed. If, after cutting something, it starts making mistakes, that line goes back.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-1#topico-6" id="topico-6">
+<div class="lesson-head">
+<span class="circle">6</span>
+<h2>Examples are worth more than adjectives</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagram with horizontal scrolling on small screens" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Real case → Good response → Bad response → Why" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-1-6-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-1-6-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-1-6-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-1-6-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d2-1-6-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-1-6-glow)" height="62" rx="10" stroke="#60a5fa" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">Real case</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d2-1-6-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">Good answer</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d2-1-6-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">Bad answer</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="60.0">Why</text>
+</g>
+</svg>
+</div>
+<figcaption>The steps show how to build a pair of examples that teaches tone better than any adjective could.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>What it is</h3>
+<p data-inema-block="m2-1-t6-p1" id="m2-1-t6-p1">Adjectives like “cordial,” “professional,” and “objective” mean different things to each person. An example shows exactly what you want. The simplest technique is to put in the instruction a good response and a bad response for the same case, explaining why one is good and the other isn’t.</p>
+<h3>Why learn</h3>
+<p data-inema-block="m2-1-t6-p2" id="m2-1-t6-p2">An agent copies patterns much better than it interprets adjectives. A model answer teaches tone, length, the order of information, and what not to say—all at once. And the bad answer shows the mistake you fear most, which usually helps avoid repeating it.</p>
+<h3>Key concepts</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Case</strong>a real and frequent situation.</div>
+<div class="key">
+<strong>Good answer</strong>the text as you want it.</div>
+<div class="key">
+<strong>Bad answer</strong>the common mistake, in full.</div>
+<div class="key">
+<strong>Reason</strong>one line saying what differentiates the two.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXAMPLE WITH COMMENTARY · 2.1.6</span>
+<button data-copy="code-2-1-6">Copy example</button>
+</div>
+<pre id="code-2-1-6">
+<code>Goal: teach the tone with a good and a bad example, instead of adjectives.
+
+## Response example
+Case: &lt;e.g.: the customer asks where order 1234 is&gt;
+
+GOOD (do this):
+“&lt;e.g.: Hi, Marina! Your order 1234 shipped yesterday and delivery is scheduled for Thursday. If you need anything, just reach out.&gt;”
+
+BAD (don’t do this):
+“&lt;e.g.: Dear customer, we inform you that your order is in transit and should arrive soon.&gt;”
+
+Why: the good one uses the person’s name, the order number, and a system date; the bad one is cold and promises “soon” without any data.
+
+How to check: ask three similar questions and confirm the answers follow the good model.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Do this</h3>
+<p>✓ Use a real case that happens every week, with example names and numbers.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Avoid this mistake</h3>
+<p>✗ Write “be friendly, but professional and to the point” and expect that to be enough.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practice before you reveal</h3>
+<p>Write a pair of examples—one good answer and one bad one—for the most common case of your task.</p>
+<details>
+<summary>View commented answer</summary>
+<p>The pair works when the difference is visible in one line. Salon example: the good one says “cut + blow-dry for R$ 90, book via the link”; the bad one says “can’t-miss prices, come check it out.” The bad one is generic and doesn’t include the data the customer wants.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Mark as read</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">I have a question</button>
+</div>
+</section>
+<section class="quiz" data-inema-check="q-2-1">
+<span class="eyebrow">CHECK WITHOUT LOCKING</span>
+<h2>Check your understanding</h2>
+<p>Your customer support agent is torn between responding quickly with an approximate timeframe or waiting to confirm in the system. What solves this?</p>
+<div class="quiz-options">
+<button data-inema-check-option="0">Ask them to “use good judgment.”</button>
+<button data-inema-check-option="1">A written tie-break rule: accuracy comes before speed.</button>
+<button data-inema-check-option="2">Give them more documents to read.</button>
+</div>
+<div aria-live="polite" data-inema-check-feedback="" role="status">
+</div>
+</section>
+<section class="module-summary">
+<h2>What you take from this module</h2>
+<p>Write the mission, the tie-break rule, and the “House rules” block of an agent—ready to paste into ChatGPT or into Claude.</p>
+<ul>
+<li>Intention: the mission and the reason.</li>
+<li>One task per agent.</li>
+<li>When priorities clash.</li>
+<li>Context: what you would explain on day one.</li>
+<li>The smallest context that makes you decide well.</li>
+<li>Examples matter more than adjectives.</li>
+</ul>
+<p>Next action: apply what you learned to your agent sheet and note what still needs review.</p>
+</section>
+<div class="actions">
+<a class="btn" href="index.html">← Track map</a>
+<a class="btn cta" href="../trilha2/modulo-2-2.html">Next: Reliable data and success criteria →</a>
+</div>
+</article>
+</div>
+<p class="muted">Reference for this module: project 7PA materials and <a href="../../index.html#fontes">course sources and editorial criteria</a>.</p>
+</main>
+<footer>
+<div class="wrap">AI Agent Management: the 7 Principles · INEMA.CLUB · v1.0.0 · Course in Portuguese<br/>Original educational material from project 7PA. Progress saved in this browser; export a copy to My learning journey.<br/>
+<a href="../../index.html#fontes">Sources and editorial criteria</a> · <a href="https://inematds.github.io/7pa/en/" rel="noopener" target="_blank">Agent Sheet</a> · <a download="" href="../../materiais/entrevistador.md">Interviewer prompt</a>
+</div>
+</footer>
+<dialog aria-label="Read the module" id="module-modal">
+<button data-close-modal="">Close module</button>
+<iframe title="Complete module content">
+</iframe>
+</dialog>
+<script id="quiz-data" type="application/json">{"id": "q-2-1", "q": "Your customer support agent is torn between responding quickly with an approximate timeframe or waiting to confirm in the system. What solves this?", "options": ["Ask them to “use good judgment.”", "A written tie-break rule: accuracy comes before speed.", "Give them more documents to read."], "answer": "1", "explain": {"0": "When two priorities conflict, the agent chooses based on the order you wrote. Without that order, they decide on their own, and each day they may decide differently.", "1": "When two priorities conflict, the agent chooses based on the order you wrote. Without that order, they decide on their own, and each day they may decide differently.", "2": "When two priorities conflict, the agent chooses based on the order you wrote. Without that order, they decide on their own, and each day they may decide differently."}}</script>
+<script src="../../assets/learn.js">
+</script>
+<script src="../../assets/course.js">
+</script>
+<nav aria-label="Course language" data-course-languages=""><a href="../../../curso/trilha2/modulo-2-1.html" hreflang="pt-BR" lang="pt-BR">Português</a><a aria-current="page" href="modulo-2-1.html" hreflang="en" lang="en">English</a><a href="../../../es/curso/trilha2/modulo-2-1.html" hreflang="es" lang="es">Español</a></nav><script data-course-language-hash="">document.querySelectorAll('[data-course-languages] a').forEach(function(a){a.addEventListener('click',function(){a.href=a.getAttribute('href').split('#')[0]+location.hash;});});</script></body>
+</html>

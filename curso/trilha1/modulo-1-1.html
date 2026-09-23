@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+<script>
+(function () {
+  try {
+    var html = document.documentElement;
+    var DEF = { theme: 'inema-dark', font: 'inter', fontScale: 100, lineWidth: 68, leading: 1.7, accent: 'emerald' };
+    function clone(o) { var r = {}; for (var x in o) r[x] = o[x]; return r; }
+    var p = clone(DEF);
+    try {
+      var raw = localStorage.getItem('inema.prefs');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          for (var k in DEF) if (parsed[k] != null) p[k] = parsed[k];
+        }
+      } else {
+        // fallback ao tema legado do v1
+        var legacy = localStorage.getItem('theme');
+        if (legacy === 'light') p.theme = 'claro';
+        else if (legacy === 'dark') p.theme = 'inema-dark';
+      }
+    } catch (e) { p = clone(DEF); }
+
+    // mapa tema -> (.dark on/off, data-theme, color-scheme)
+    var THEMES = {
+      'inema-dark': { dark: true,  attr: null,        cs: 'dark'  },
+      'claro':      { dark: false, attr: null,        cs: 'light' },
+      'sepia':      { dark: false, attr: 'sepia',     cs: 'light' },
+      'foco':       { dark: null,  attr: 'foco',      cs: null    },  // herda eixo atual
+      'contraste':  { dark: true,  attr: 'contraste', cs: 'dark'  }
+    };
+    var t = THEMES[p.theme] || THEMES['inema-dark'];
+
+    if (t.dark === true) html.classList.add('dark');
+    else if (t.dark === false) html.classList.remove('dark');
+    // 'foco' (null) preserva o que ja houver no atributo class do <html>
+
+    if (t.attr) html.setAttribute('data-theme', t.attr);
+    else html.removeAttribute('data-theme');
+
+    html.style.colorScheme = (t.cs ? t.cs : (html.classList.contains('dark') ? 'dark' : 'light'));
+
+    html.setAttribute('data-font', p.font || 'inter');
+    html.setAttribute('data-accent', p.accent || 'emerald');
+
+    // variaveis de leitura (espelham learn.js / learn.css) ANTES do paint
+    var s = html.style;
+    var scale = (+p.fontScale || 100);
+    s.setProperty('--inema-font-scale', (scale / 100).toString());
+    s.setProperty('font-size', scale + '%');               // :root em %, nunca px
+    s.setProperty('--measure', (+p.lineWidth || 68) + 'ch');
+    s.setProperty('--lh-body', (+p.leading || 1.7).toString());
+    var fam = p.font === 'system'
+      ? 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
+      : (p.font === 'leitura'
+        ? '"Atkinson Hyperlegible", "Inter", system-ui, sans-serif'
+        : '"Inter", system-ui, sans-serif');
+    s.setProperty('--font-body', fam);
+
+    var ACC = {
+      emerald: [152, 76, 45], blue: [217, 91, 60], purple: [258, 90, 66],
+      amber: [38, 92, 50], teal: [174, 72, 41], rose: [350, 89, 60]
+    };
+    var a = ACC[p.accent] || ACC.emerald;
+    s.setProperty('--accent-h', a[0] + '');
+    s.setProperty('--accent-s', a[1] + '%');
+    s.setProperty('--accent-l', a[2] + '%');
+    s.setProperty('--accent', 'hsl(' + a[0] + ' ' + a[1] + '% ' + a[2] + '%)');
+  } catch (err) {
+    // qualquer falha => default dark, preserva a marca
+    try { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; } catch (e) {}
+  }
+})();
+</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Da ferramenta à equipe | Gestão de Agentes de IA · INEMA</title>
+<meta content="Curso de gestão de agentes de IA: intenção, contexto, dados, critério de sucesso, autonomia com limites, observação e supervisão humana. Com a Ficha do Agente, galeria de casos e projeto final." name="description"/>
+<meta content="gestao-agentes-7pa" name="inema-course"/>
+<meta content="../../" name="course-root"/>
+<script data-inema-manifest="" type="application/json">{"course": "gestao-agentes-7pa", "tracks": [{"n": "1", "title": "A virada", "modules": [{"id": "1-1", "title": "Da ferramenta à equipe", "topics": 6, "href": "curso/trilha1/modulo-1-1.html"}, {"id": "1-2", "title": "Separe o marketing do método", "topics": 6, "href": "curso/trilha1/modulo-1-2.html"}]}, {"n": "2", "title": "Delegar bem", "modules": [{"id": "2-1", "title": "Intenção e contexto", "topics": 6, "href": "curso/trilha2/modulo-2-1.html"}, {"id": "2-2", "title": "Dados confiáveis e critério de sucesso", "topics": 6, "href": "curso/trilha2/modulo-2-2.html"}]}, {"n": "3", "title": "Autonomia e supervisão", "modules": [{"id": "3-1", "title": "Autonomia com limites", "topics": 6, "href": "curso/trilha3/modulo-3-1.html"}, {"id": "3-2", "title": "Observação e supervisão", "topics": 6, "href": "curso/trilha3/modulo-3-2.html"}]}, {"n": "4", "title": "O segredo e o projeto", "modules": [{"id": "4-1", "title": "O segredo: você já sabe isso", "topics": 6, "href": "curso/trilha4/modulo-4-1.html"}, {"id": "4-2", "title": "Projeto final: seu agente em produção", "topics": 6, "href": "curso/trilha4/modulo-4-2.html"}]}]}</script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="../../assets/course.css" rel="stylesheet"/>
+<link href="../../assets/learn.css" rel="stylesheet"/>
+<link href="../../assets/patches.css" rel="stylesheet"/>
+<link href="https://inematds.github.io/curso-7pa/curso/trilha1/modulo-1-1.html" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha1/modulo-1-1.html" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha1/modulo-1-1.html" hreflang="es" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha1/modulo-1-1.html" hreflang="x-default" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha1/modulo-1-1.html" rel="canonical"/><style id="course-language-css">[data-course-languages]{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:1.25rem;padding:.65rem;justify-content:center;background:#111827;color:#f3f4f6}[data-course-languages] a{color:inherit;font:14px system-ui}[data-course-languages] [aria-current]{font-weight:bold;text-decoration:underline}[data-course-languages] a:focus-visible{outline:2px solid #38bdf8;outline-offset:4px}body{padding-bottom:75px}</style></head>
+<body class="track-1">
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+<nav aria-label="Navegação principal" class="site-nav">
+<div class="wrap nav-row">
+<a aria-label="7 Princípios, início" class="brand" href="../../index.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 32 32">
+<circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.2"></circle>
+<circle cx="16" cy="16" fill="currentColor" r="3.2"></circle>
+<path d="M16 4v5M16 23v5M4 16h5M23 16h5" stroke="currentColor" stroke-width="2.2"></path>
+</svg>
+<span class="brand-name">7 PRINCÍPIOS</span>
+</a>
+<a class="text-sky-400" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span aria-hidden="true" class="nav-sep">-</span>
+<a class="nav-pro text-amber-700 dark:text-slate-300" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+<div class="nav-links">
+<a aria-current="page" class="active" href="../../curso/trilha1/index.html">
+<span class="nav-full">A virada</span>
+<span class="nav-short">T1</span>
+</a>
+<a class="" href="../../curso/trilha2/index.html">
+<span class="nav-full">Delegar bem</span>
+<span class="nav-short">T2</span>
+</a>
+<a class="" href="../../curso/trilha3/index.html">
+<span class="nav-full">Autonomia e supervisão</span>
+<span class="nav-short">T3</span>
+</a>
+<a class="" href="../../curso/trilha4/index.html">
+<span class="nav-full">O segredo e o projeto</span>
+<span class="nav-short">T4</span>
+</a>
+</div>
+<button aria-label="Alternar tema claro e escuro" class="theme-toggle" id="theme-toggle">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"></circle>
+<path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2" stroke="currentColor" stroke-width="1.6"></path>
+</svg>
+</button>
+</div>
+</nav>
+<div class="wrap studybar">
+<div class="tools">
+<button data-inema-journey-open="">Minha jornada</button>
+<button data-course-resume="">Continuar leitura</button>
+<div class="appearance-wrap">
+<button aria-controls="appearance" aria-expanded="false" data-inema-appearance-toggle="#appearance">Aparência</button>
+<div class="inema-appearance-pop" data-inema-appearance="" data-open="false" id="appearance">
+<h3>Tema</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-theme="inema-dark">Escuro</button>
+<button aria-pressed="false" data-inema-set-theme="claro">Claro</button>
+<button aria-pressed="false" data-inema-set-theme="sepia">Sépia</button>
+<button aria-pressed="false" data-inema-set-theme="foco">Foco</button>
+<button aria-pressed="false" data-inema-set-theme="contraste">Alto contraste</button>
+</div>
+<h3>Fonte</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-font="inter">Inter / sistema</button>
+<button aria-pressed="false" data-inema-set-font="system">Sistema</button>
+<button aria-pressed="false" data-inema-set-font="leitura">Leitura</button>
+</div>
+<h3>Tamanho</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-fontscale="100">100%</button>
+<button aria-pressed="false" data-inema-set-fontscale="112">112%</button>
+<button aria-pressed="false" data-inema-set-fontscale="125">125%</button>
+</div>
+<h3>Largura de texto</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-linewidth="60">Estreita</button>
+<button aria-pressed="false" data-inema-set-linewidth="68">Média</button>
+<button aria-pressed="false" data-inema-set-linewidth="75">Larga</button>
+</div>
+<h3>Entrelinha</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-leading="1.45">Compacta</button>
+<button aria-pressed="false" data-inema-set-leading="1.7">Confortável</button>
+</div>
+<h3>Acento dos controles</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-accent="emerald">Verde</button>
+<button aria-pressed="false" data-inema-set-accent="blue">Azul</button>
+<button aria-pressed="false" data-inema-set-accent="purple">Roxo</button>
+<button aria-pressed="false" data-inema-set-accent="amber">Âmbar</button>
+<button aria-pressed="false" data-inema-set-accent="teal">Turquesa</button>
+<button aria-pressed="false" data-inema-set-accent="rose">Rosa</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="Progresso de leitura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="curso" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+</div>
+<noscript>
+<p class="wrap no-script">Você pode ler todas as aulas sem JavaScript. Progresso, notas e controles de aparência precisam de JavaScript.</p>
+</noscript>
+<main class="wrap" id="conteudo">
+<div class="breadcrumb">
+<a href="../../index.html">Início</a> / <a href="index.html">A virada</a> / Módulo 1.1</div>
+<header class="hero">
+<span class="pill">MÓDULO 1.1</span>
+<h1>Da ferramenta à equipe</h1>
+<p class="lead">Entenda o que muda quando a IA deixa de só responder e passa a executar tarefas.</p>
+<p>
+<strong>Ao final:</strong> Explicar com as suas palavras o que é um agente de IA e fazer a sua primeira delegação com nível de autonomia calculado.</p>
+</header>
+<div class="stats">
+<div class="stat">
+<strong>6</strong>
+<span>tópicos</span>
+</div>
+<div class="stat">
+<strong>50 min</strong>
+<span>estimativa com prática</span>
+</div>
+<div class="stat">
+<strong>6</strong>
+<span>exercícios comentados</span>
+</div>
+<div class="stat">
+<strong>1</strong>
+<span>checagem final</span>
+</div>
+</div>
+<div class="reading-layout">
+<aside aria-label="Índice do módulo" class="toc" data-inema-toc="">
+<h2>Neste módulo</h2>
+<span data-inema-section-counter="">Seção 1 de 6</span>
+<ol>
+<li>
+<a href="#topico-1">1. O que é um agente de IA</a>
+</li>
+<li>
+<a href="#topico-2">2. A virada: antes você executava, agora você gerencia</a>
+</li>
+<li>
+<a href="#topico-3">3. Automação orientada por intenção</a>
+</li>
+<li>
+<a href="#topico-4">4. O novo fluxo de trabalho</a>
+</li>
+<li>
+<a href="#topico-5">5. Pessoas + Processos + Agentes</a>
+</li>
+<li>
+<a href="#topico-6">6. Sua primeira delegação hoje</a>
+</li>
+</ol>
+<div aria-label="Progresso de leitura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="modulo:1-1" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+<p class="muted">Selecione um trecho das explicações para grifar ou anotar.</p>
+</aside>
+<article class="lesson-content" data-inema-module="1-1" data-inema-track="1">
+<section class="lesson" data-inema-topic="modulo-1-1#topico-1" id="topico-1">
+<div class="lesson-head">
+<span class="circle">1</span>
+<h2>O que é um agente de IA</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Modelo (LLM) → Ferramentas → Objetivo → Ação no mundo" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-1-1-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-1-1-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-1-1-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-1-1-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d1-1-1-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-1-1-glow)" height="74" rx="10" stroke="#34d399" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Modelo (LLM)</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d1-1-1-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">Ferramentas</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d1-1-1-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">Objetivo</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Ação no mundo</text>
+</g>
+</svg>
+</div>
+<figcaption>O modelo só vira agente quando ganha um objetivo e ferramentas para agir; sem ferramenta, ele apenas conversa.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m1-1-t1-p1" id="m1-1-t1-p1">Um modelo de IA (também chamado LLM, “modelo de linguagem”) é o programa que lê texto e escreve texto, como o que está por trás do ChatGPT ou do Claude. Uma ferramenta é algo que a IA consegue usar para agir no mundo: ler uma planilha, enviar uma mensagem, consultar uma agenda. Um agente de IA é um modelo que recebe um objetivo e usa ferramentas para executar passos até chegar a um resultado. A diferença central: o chat responde, o agente executa.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m1-1-t1-p2" id="m1-1-t1-p2">Quem confunde responder com executar subestima o risco. Uma resposta errada no chat você lê e descarta. Uma ação errada de um agente já aconteceu: a mensagem foi enviada, o pedido foi alterado. Saber o que é um agente é o primeiro passo para decidir o que ele pode ou não fazer sozinho.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Modelo</strong>o cérebro que lê e escreve texto.</div>
+<div class="key">
+<strong>Ferramenta</strong>a mão que age, como agenda, planilha ou WhatsApp.</div>
+<div class="key">
+<strong>Objetivo</strong>o que o agente precisa alcançar.</div>
+<div class="key">
+<strong>Resultado</strong>o que sobra no mundo depois da execução.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 1.1.1</span>
+<button data-copy="code-1-1-1">Copiar exemplo</button>
+</div>
+<pre id="code-1-1-1">
+<code>Objetivo: perceber a diferença entre um pedido de resposta e um pedido de execução.
+
+Cole no ChatGPT ou Claude:
+“Vou te mostrar dois pedidos. Diga qual é RESPONDER e qual é EXECUTAR, e que ferramenta a IA precisaria ter para o segundo:
+1) Me explique como confirmar consultas por WhatsApp.
+2) Confirme pelo WhatsApp as consultas de amanhã da &lt;sua clínica / seu negócio&gt;.”
+
+Como verificar: a IA deve classificar o 1 como resposta e o 2 como execução, citando acesso à agenda e ao WhatsApp como ferramentas.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Pergunte sempre: isso só responde ou também age em algum lugar?</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Chamar de agente qualquer conversa com chatbot que só devolve texto.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Leve para o seu agente.</strong> O modelo só vira agente quando ganha um objetivo e ferramentas para agir; sem ferramenta, ele apenas conversa. Use essa ideia para revisar a ficha do seu agente antes de avançar.</aside>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Liste três tarefas do seu trabalho e marque em cada uma se a IA apenas responderia ou precisaria executar algo.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Exemplo: “resumir um contrato” é responder; “enviar lembrete de pagamento” é executar, porque usa uma ferramenta e fala com gente de fora. As tarefas de execução são as que exigem mais cuidado com limites.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-1#topico-2" id="topico-2">
+<div class="lesson-head">
+<span class="circle">2</span>
+<h2>A virada: antes você executava, agora você gerencia</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Define a intenção → Organiza o contexto → Delega → Supervisiona e avalia" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-1-2-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-1-2-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-1-2-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-1-2-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d1-1-2-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-1-2-glow)" height="62" rx="10" stroke="#34d399" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">Define a intenção</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d1-1-2-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">Organiza o contexto</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d1-1-2-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">Delega</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="51.0">Supervisiona e</text>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="70.0">avalia</text>
+</g>
+</svg>
+</div>
+<figcaption>O seu trabalho sai da execução e se espalha em quatro etapas de gestão, antes e depois de o agente agir.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m1-1-t2-p1" id="m1-1-t2-p1">Antes, o caminho era: pessoa → executa o processo → resultado. Com agentes, passa a ser: pessoa → define a intenção → organiza o contexto → delega → supervisiona → avalia. Contexto é o conjunto de informações que você entrega ao agente para ele decidir bem: regras da casa, exemplos, histórico e a situação atual. Você não some do processo; muda de lugar nele.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m1-1-t2-p2" id="m1-1-t2-p2">Quem continua pensando como executor tende a delegar mal: joga a tarefa e espera milagre, ou refaz tudo por desconfiança. Pensar como gestor significa combinar antes o que é bom resultado e conferir depois. É o que você já faz com um funcionário novo, agora por escrito.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Intenção</strong>dizer o que quer e por quê.</div>
+<div class="key">
+<strong>Contexto</strong>entregar as regras e a situação atual.</div>
+<div class="key">
+<strong>Delegar</strong>passar a tarefa com limites claros.</div>
+<div class="key">
+<strong>Avaliar</strong>conferir o resultado e corrigir o rumo.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 1.1.2</span>
+<button data-copy="code-1-1-2">Copiar exemplo</button>
+</div>
+<pre id="code-1-1-2">
+<code>Objetivo: descobrir onde o seu tempo vai ficar depois de delegar uma tarefa.
+
+Cole no ChatGPT ou Claude:
+“Hoje eu faço esta tarefa com as minhas mãos: &lt;descreva a tarefa, ex.: responder clientes sobre prazo de entrega&gt;.
+Se um agente de IA passar a executá-la, liste o que continua sendo meu trabalho em quatro blocos: definir a intenção, organizar o contexto, supervisionar e avaliar. Para cada bloco, diga quanto tempo por semana isso deve me tomar.”
+
+Como verificar: a resposta precisa ter os quatro blocos e deixar claro que avaliar e corrigir continuam com você.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Do conceito à ação</h3>
+<ol>
+<li>Define a intenção: identificar a condição inicial.</li>
+<li>Organiza o contexto: aplicar a decisão descrita.</li>
+<li>Delega: conferir o efeito no exemplo.</li>
+<li>Supervisiona e avalia: registrar a evidência de saída.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Reserve tempo na agenda para revisar o que o agente fez.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Delegar e sumir, achando que o agente vai adivinhar o que você esqueceu de dizer.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Pense num funcionário que você treinou. Escreva o que explicou no primeiro dia.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Isso é o contexto que um agente também precisa. A diferença é que o funcionário deduz o que ficou implícito; o agente só sabe o que está escrito.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-1#topico-3" id="topico-3">
+<div class="lesson-head">
+<span class="circle">3</span>
+<h2>Automação orientada por intenção</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Objetivo → Bom resultado → Limites → Definição de pronto" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-1-3-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-1-3-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-1-3-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-1-3-grid)" height="200" width="720"></rect>
+<path d="M225 100 C310 100 315 34 365 34" fill="none" marker-end="url(#d1-1-3-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 100 365 100" fill="none" marker-end="url(#d1-1-3-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 166 365 166" fill="none" marker-end="url(#d1-1-3-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-1-3-glow)" height="70" rx="10" stroke="#34d399" stroke-width="2" width="205" x="20" y="65"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="122.5" y="105.0">Objetivo</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="10"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="39.0">Bom resultado</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="76"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="105.0">Limites</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="142"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="171.0">Definição de pronto</text>
+</g>
+</svg>
+</div>
+<figcaption>Uma intenção completa tem quatro partes; faltando qualquer uma, o agente preenche a lacuna do jeito dele.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m1-1-t3-p1" id="m1-1-t3-p1">Automação é fazer uma tarefa acontecer sem uma pessoa realizando cada passo. Na automação clássica você desenha todos os passos: se chegar e-mail X, faça Y. Na automação orientada por intenção você diz o quê: o objetivo, o que é um bom resultado, os limites e quando a tarefa termina. A IA escolhe parte do caminho.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m1-1-t3-p2" id="m1-1-t3-p2">Descrever a intenção é mais rápido do que desenhar cada passo, mas transfere uma decisão para a máquina. Se a intenção estiver vaga, o agente cumpre a tarefa errada com eficiência. Aprender a escrever intenção boa é a habilidade que mais rende nessa virada.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>O quê</strong>o objetivo em uma frase.</div>
+<div class="key">
+<strong>O que é bom</strong>como reconhecer um resultado aceitável.</div>
+<div class="key">
+<strong>Limites</strong>o que ele nunca pode fazer.</div>
+<div class="key">
+<strong>Quando termina</strong>a definição de pronto.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 1.1.3</span>
+<button data-copy="code-1-1-3">Copiar exemplo</button>
+</div>
+<pre id="code-1-1-3">
+<code>Objetivo: transformar um pedido vago em uma intenção completa.
+
+Cole no ChatGPT ou Claude:
+“Meu pedido é: &lt;ex.: cuide das mensagens da loja&gt;.
+Reescreva como intenção completa, com quatro linhas:
+O QUÊ: …
+O QUE É BOM: …
+LIMITES (o que nunca fazer): …
+QUANDO TERMINA: …
+Se faltar informação, me pergunte em vez de inventar.”
+
+Como verificar: as quatro linhas aparecem e a IA fez pelo menos uma pergunta sobre algo que você não disse.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Escreva sempre as quatro partes, mesmo em tarefas pequenas.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Pedir “cuida disso pra mim” sem dizer o que é bom nem o que é proibido.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Pegue um pedido que você faria hoje à IA e escreva as quatro linhas: o quê, o que é bom, limites e quando termina.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Exemplo: o quê, confirmar consultas de amanhã; bom, todo paciente recebeu mensagem; limite, nunca remarcar; termina, às 17h com lista de quem não respondeu. Se você travou em alguma linha, é ali que o agente também travaria.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-1#topico-4" id="topico-4">
+<div class="lesson-head">
+<span class="circle">4</span>
+<h2>O novo fluxo de trabalho</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Intenção e contexto → Dados confiáveis → Execução com travas → Avaliar e evoluir" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-1-4-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-1-4-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-1-4-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-1-4-grid)" height="200" width="720"></rect>
+<path d="M179 65 H192 V91 H197" fill="none" marker-end="url(#d1-1-4-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-1-4-glow)" height="72" rx="10" stroke="#34d399" stroke-width="2" width="150" x="25" y="25"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="100.0" y="66.0">Intenção e contexto</text>
+</g>
+<path d="M354 91 H367 V117 H372" fill="none" marker-end="url(#d1-1-4-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="200" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="275.0" y="92.0">Dados confiáveis</text>
+</g>
+<path d="M529 117 H542 V143 H547" fill="none" marker-end="url(#d1-1-4-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="375" y="77"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="450.0" y="118.0">Execução com travas</text>
+</g>
+<g>
+<rect fill="#111827" height="72" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="550" y="103"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="625.0" y="144.0">Avaliar e evoluir</text>
+</g>
+</svg>
+</div>
+<figcaption>Os sete passos se agrupam em quatro fases; a última devolve aprendizado para a primeira.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m1-1-t4-p1" id="m1-1-t4-p1">O trabalho com agentes segue um fluxo: Intenção → Contexto → Dados → Execução → Avaliação → Supervisão → Evolução. Fonte da verdade é o lugar oficial de onde vem a informação certa, como a agenda do sistema, e não a planilha antiga. Autonomia é quanta liberdade o agente tem para agir sem pedir licença. Guardrail é uma trava que impede ações proibidas, e log é o registro do que o agente fez, para você conferir depois.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m1-1-t4-p2" id="m1-1-t4-p2">Quando algo dá errado, o fluxo mostra onde procurar: intenção vaga, contexto faltando, dado errado ou avaliação ausente. Sem esse mapa, a reação comum é trocar de ferramenta, quando o problema estava num passo anterior. E o fluxo não termina na execução: o que você aprende volta para melhorar a intenção.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Preparar</strong>intenção e contexto antes de agir.</div>
+<div class="key">
+<strong>Alimentar</strong>dados da fonte da verdade.</div>
+<div class="key">
+<strong>Executar</strong>o agente age dentro da autonomia e dos guardrails.</div>
+<div class="key">
+<strong>Aprender</strong>avaliar pelo log, supervisionar e evoluir.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 1.1.4</span>
+<button data-copy="code-1-1-4">Copiar exemplo</button>
+</div>
+<pre id="code-1-1-4">
+<code>Objetivo: diagnosticar em que passo do fluxo um problema nasceu.
+
+Cole no ChatGPT ou Claude:
+“Use este fluxo: 1 Intenção, 2 Contexto, 3 Dados, 4 Execução, 5 Avaliação, 6 Supervisão, 7 Evolução.
+Aconteceu isto com a IA no meu trabalho: &lt;ex.: mandou preço antigo para um cliente&gt;.
+Diga em qual passo o problema nasceu, por quê, e qual a menor correção possível nesse passo.”
+
+Como verificar: a IA aponta um passo específico, como Dados, e sugere uma correção pequena, como definir a tabela de preços oficial.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Diante de um erro, pergunte primeiro em que passo do fluxo ele nasceu.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Trocar de ferramenta de IA a cada erro sem olhar intenção, contexto e dados.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Leve para o seu agente.</strong> Os sete passos se agrupam em quatro fases; a última devolve aprendizado para a primeira. Use essa ideia para revisar a ficha do seu agente antes de avançar.</aside>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Relembre um erro que a IA cometeu com você e classifique em qual dos sete passos ele nasceu.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Na maioria dos casos o erro nasce em Contexto ou Dados: faltou uma regra ou a informação estava desatualizada. A correção costuma ser uma linha a mais nas instruções, não uma ferramenta nova.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-1#topico-5" id="topico-5">
+<div class="lesson-head">
+<span class="circle">5</span>
+<h2>Pessoas + Processos + Agentes</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Pessoas → Processos → Agentes → Lista única" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-1-5-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-1-5-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-1-5-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-1-5-grid)" height="200" width="720"></rect>
+<path d="M280 54 H414" fill="none" marker-end="url(#d1-1-5-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M540 87 V110" fill="none" marker-end="url(#d1-1-5-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M420 148 H287" fill="none" marker-end="url(#d1-1-5-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<path d="M160 116 V92" fill="none" marker-end="url(#d1-1-5-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-1-5-glow)" height="64" rx="10" stroke="#34d399" stroke-width="2" width="240" x="40" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="59.0">Pessoas</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="59.0">Processos</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="153.0">Agentes</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="40" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="153.0">Lista única</text>
+</g>
+</svg>
+</div>
+<figcaption>As três dimensões precisam de um ponto de encontro: uma lista única de agentes com dono e processo definidos.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m1-1-t5-p1" id="m1-1-t5-p1">Adotar agentes numa empresa não é só uma questão de tecnologia. Sem coordenação, cada pessoa cria o seu agente, a sua planilha e as suas regras, e surgem agentes duplicados ou conflitantes: dois agentes respondendo o mesmo cliente com informações diferentes. A gestão passa a cuidar de três coisas ao mesmo tempo: pessoas, processos e agentes.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m1-1-t5-p2" id="m1-1-t5-p2">Um agente bem feito dentro de um processo bagunçado piora a bagunça, só que mais rápido. Numa clínica pequena, se a recepcionista e o dono ligarem cada um o seu robô de WhatsApp, o paciente recebe duas mensagens diferentes. Coordenar é saber quem é o responsável por cada agente e qual processo ele atende.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Pessoas</strong>quem define, aprova e responde por cada agente.</div>
+<div class="key">
+<strong>Processos</strong>qual rotina o agente atende, do início ao fim.</div>
+<div class="key">
+<strong>Agentes</strong>o que cada um faz e o que não faz.</div>
+<div class="key">
+<strong>Coordenação</strong>uma lista única para evitar duplicados.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 1.1.5</span>
+<button data-copy="code-1-1-5">Copiar exemplo</button>
+</div>
+<pre id="code-1-1-5">
+<code>Objetivo: montar o inventário de agentes e automações do seu negócio.
+
+Copie esta tabela e preencha, uma linha por agente ou automação que já existe:
+Agente ou automação ; O que faz ; Processo que atende ; Dono (pessoa) ; Fonte da informação
+&lt;ex.: robô do WhatsApp&gt; ; &lt;responde horário&gt; ; &lt;atendimento&gt; ; &lt;Ana&gt; ; &lt;site da loja&gt;
+
+Depois cole no ChatGPT ou Claude: “Aponte agentes duplicados, conflitantes ou sem dono nesta tabela.”
+
+Como verificar: toda linha tem um dono com nome e nenhum processo aparece com dois agentes fazendo a mesma coisa.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Do conceito à ação</h3>
+<ol>
+<li>Pessoas: identificar a condição inicial.</li>
+<li>Processos: aplicar a decisão descrita.</li>
+<li>Agentes: conferir o efeito no exemplo.</li>
+<li>Lista única: registrar a evidência de saída.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Mantenha uma lista única de agentes, cada um com um dono com nome.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Deixar cada pessoa ligar a sua própria automação sem avisar ninguém.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Faça o inventário acima com pelo menos três itens, incluindo automações simples como resposta automática de e-mail.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>É comum descobrir automações esquecidas ou sem dono. Agente sem dono não é revisado, e o que não é revisado acaba repetindo erro sem ninguém notar.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-1-1#topico-6" id="topico-6">
+<div class="lesson-head">
+<span class="circle">6</span>
+<h2>Sua primeira delegação hoje</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama com rolagem horizontal em telas pequenas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Escolha a tarefa → 7 perguntas → Nível calculado → 3 testes" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d1-1-6-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#34d399" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d1-1-6-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d1-1-6-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#34d399"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d1-1-6-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d1-1-6-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d1-1-6-glow)" height="62" rx="10" stroke="#34d399" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">Escolha a tarefa</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d1-1-6-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">7 perguntas</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d1-1-6-arrow)" opacity=".6" stroke="#34d399" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">Nível calculado</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="60.0">3 testes</text>
+</g>
+</svg>
+</div>
+<figcaption>A primeira delegação segue quatro passos, e o nível é consequência das respostas, não uma escolha livre.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>O que é</h3>
+<p data-inema-block="m1-1-t6-p1" id="m1-1-t6-p1">A melhor forma de entender a virada é delegar uma tarefa pequena de verdade, passando pelas sete perguntas: intenção, contexto, dados, critério de sucesso, autonomia, observação e supervisão. A Ficha do Agente faz essas perguntas e calcula o nível de autonomia, de N0 (só consulta) a N4 (toca um processo inteiro). Você sai com uma instrução pronta, três testes e uma checklist.</p>
+<h3>Por que aprender</h3>
+<p data-inema-block="m1-1-t6-p2" id="m1-1-t6-p2">Ler sobre gestão de agentes não muda nada; fazer uma ficha muda. O nível calculado mostra na prática a regra central: se a tarefa envolve dinheiro, ação que não se desfaz ou gente de fora, o agente fica em N2, e nada sai sem o seu OK. Começar pequeno e baixo é o caminho seguro para subir depois com evidência.</p>
+<h3>Conceitos-chave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Escolher</strong>uma tarefa pequena e repetida.</div>
+<div class="key">
+<strong>Responder</strong>as sete perguntas com exemplos reais.</div>
+<div class="key">
+<strong>Calcular</strong>o nível sai da regra, não do gosto.</div>
+<div class="key">
+<strong>Testar</strong>rodar os três testes antes de confiar.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EXEMPLO COMENTADO · 1.1.6</span>
+<button data-copy="code-1-1-6">Copiar exemplo</button>
+</div>
+<pre id="code-1-1-6">
+<code>Objetivo: fazer a sua primeira ficha de agente em 10 minutos.
+
+Caminho A (formulário): abra https://inematds.github.io/7pa/?preset=clinica
+Leia a ficha pronta da clínica e depois troque os campos pela sua tarefa: &lt;sua tarefa&gt;.
+Outras fichas prontas: https://inematds.github.io/7pa/galeria/
+
+Caminho B (conversa), cole no ChatGPT ou Claude:
+“Seja meu entrevistador de gestão de agentes. Faça UMA pergunta por vez, em linguagem simples, nesta ordem: intenção, contexto, dados, critério de sucesso, autonomia, observação, supervisão. No fim calcule o nível: consulta N0; rascunho N1; executa N3; processo inteiro N4; se envolver dinheiro, ação irreversível ou gente de fora, no máximo N2; sem fonte oficial, no máximo N1. Entregue a ficha, a instrução pronta, 3 testes e a checklist. Minha tarefa: &lt;sua tarefa&gt;.”
+
+Como verificar: a ficha da clínica sai N2, porque a mensagem vai para gente de fora e não se desfaz; a sua ficha deve trazer o nível com o motivo em uma frase.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Faça assim</h3>
+<p>✓ Comece por uma tarefa pequena e aceite o nível que a regra calcular.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evite este erro</h3>
+<p>✗ Subir o nível na mão para “ganhar tempo” antes de ter evidência.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Pratique antes de revelar</h3>
+<p>Abra a galeria, escolha a ficha mais parecida com a sua área e anote o nível e o motivo.</p>
+<details>
+<summary>Ver resposta comentada</summary>
+<p>Exemplos: advocacia sai N0, porque só pesquisa; salão sai N1, porque só prepara rascunhos; restaurante chega a N3, porque executa algo interno e reversível. Se a sua tarefa fala com cliente, espere N2.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como lido</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tenho uma dúvida</button>
+</div>
+</section>
+<section class="quiz" data-inema-check="q-1-1">
+<span class="eyebrow">CHECAGEM SEM BLOQUEIO</span>
+<h2>Confira seu entendimento</h2>
+<p>Qual é a principal diferença entre usar a IA como ferramenta e trabalhar com um agente de IA?</p>
+<div class="quiz-options">
+<button data-inema-check-option="0">O agente usa um modelo de IA mais caro e mais inteligente.</button>
+<button data-inema-check-option="1">O agente recebe um objetivo e executa passos com ferramentas; você passa a definir, acompanhar e avaliar.</button>
+<button data-inema-check-option="2">O agente dispensa a revisão humana porque decide sozinho.</button>
+</div>
+<div aria-live="polite" data-inema-check-feedback="" role="status">
+</div>
+</section>
+<section class="module-summary">
+<h2>O que você leva deste módulo</h2>
+<p>Explicar com as suas palavras o que é um agente de IA e fazer a sua primeira delegação com nível de autonomia calculado.</p>
+<ul>
+<li>O que é um agente de IA.</li>
+<li>A virada: antes você executava, agora você gerencia.</li>
+<li>Automação orientada por intenção.</li>
+<li>O novo fluxo de trabalho.</li>
+<li>Pessoas + Processos + Agentes.</li>
+<li>Sua primeira delegação hoje.</li>
+</ul>
+<p>Próxima ação: aplique o que aprendeu na ficha do seu agente e anote o que ainda precisa de revisão.</p>
+</section>
+<div class="actions">
+<a class="btn" href="index.html">← Mapa da trilha</a>
+<a class="btn cta" href="../trilha1/modulo-1-2.html">Próximo: Separe o marketing do método →</a>
+</div>
+</article>
+</div>
+<p class="muted">Referência deste módulo: materiais do projeto 7PA e <a href="../../index.html#fontes">fontes e critérios editoriais do curso</a>.</p>
+</main>
+<footer>
+<div class="wrap">Gestão de Agentes de IA: os 7 Princípios · INEMA.CLUB · v1.0.0 · Curso em português<br/>Material educativo autoral do projeto 7PA. Progresso salvo neste navegador; exporte uma cópia em Minha jornada.<br/>
+<a href="../../index.html#fontes">Fontes e critérios editoriais</a> · <a href="https://inematds.github.io/7pa/" rel="noopener" target="_blank">Ficha do Agente</a> · <a download="" href="../../materiais/entrevistador.md">Prompt entrevistador</a>
+</div>
+</footer>
+<dialog aria-label="Leitura do módulo" id="module-modal">
+<button data-close-modal="">Fechar módulo</button>
+<iframe title="Conteúdo completo do módulo">
+</iframe>
+</dialog>
+<script id="quiz-data" type="application/json">{"id": "q-1-1", "q": "Qual é a principal diferença entre usar a IA como ferramenta e trabalhar com um agente de IA?", "options": ["O agente usa um modelo de IA mais caro e mais inteligente.", "O agente recebe um objetivo e executa passos com ferramentas; você passa a definir, acompanhar e avaliar.", "O agente dispensa a revisão humana porque decide sozinho."], "answer": "1", "explain": {"0": "A virada não está no modelo, e sim no papel: o agente age sobre um objetivo usando ferramentas, e você sai da execução para a gestão. A revisão humana continua necessária, sobretudo quando há dinheiro, ação irreversível ou gente de fora.", "1": "A virada não está no modelo, e sim no papel: o agente age sobre um objetivo usando ferramentas, e você sai da execução para a gestão. A revisão humana continua necessária, sobretudo quando há dinheiro, ação irreversível ou gente de fora.", "2": "A virada não está no modelo, e sim no papel: o agente age sobre um objetivo usando ferramentas, e você sai da execução para a gestão. A revisão humana continua necessária, sobretudo quando há dinheiro, ação irreversível ou gente de fora."}}</script>
+<script src="../../assets/learn.js">
+</script>
+<script src="../../assets/course.js">
+</script>
+<nav aria-label="Idioma do curso" data-course-languages=""><a aria-current="page" href="modulo-1-1.html" hreflang="pt-BR" lang="pt-BR">Português</a><a href="../../en/curso/trilha1/modulo-1-1.html" hreflang="en" lang="en">English</a><a href="../../es/curso/trilha1/modulo-1-1.html" hreflang="es" lang="es">Español</a></nav><script data-course-language-hash="">document.querySelectorAll('[data-course-languages] a').forEach(function(a){a.addEventListener('click',function(){a.href=a.getAttribute('href').split('#')[0]+location.hash;});});</script></body>
+</html>

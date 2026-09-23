@@ -1,0 +1,40 @@
+{
+  "translations": {
+    "aa8a5d57a8e2118698ac4da4": "Abre la galería, elige la ficha más parecida a tu área y anota el nivel y el motivo."
+  },
+  "metrics": {
+    "stage": "curso-7pa:content-repair",
+    "model": "openai/gpt-5.4-nano",
+    "lang": "Spanish (Latin America)",
+    "input_items": 1,
+    "source_characters": 120,
+    "usage": {
+      "prompt_tokens": 544,
+      "completion_tokens": 51,
+      "total_tokens": 595,
+      "cost": 0.00017255,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00017255,
+        "upstream_inference_prompt_cost": 0.0001088,
+        "upstream_inference_completions_cost": 6.375e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "cost_usd": 0.00017255,
+    "seconds": 1.82,
+    "id": "gen-1790189616-24Q6TnuFoosKe8fzzbaa",
+    "returned_model": "openai/gpt-5.4-nano",
+    "cost_kind": "reported"
+  }
+}

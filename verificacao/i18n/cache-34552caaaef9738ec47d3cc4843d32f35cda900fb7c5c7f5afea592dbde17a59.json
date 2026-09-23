@@ -1,0 +1,61 @@
+{
+  "translations": {
+    "a9b447d791c8ed05f860f032": "Objetivo: pega y pega en ⟪P0⟫ o ⟪P1⟫ el nivel y las prohibiciones del agente.",
+    "56b63283fd1a995a4a135b23": "Nivel: <N2> · <prepara, humano apruebas>. Modo de permiso: <default>.",
+    "6bbf9468121bf422df566a44": "Misión: <qué hace y por qué importa>.",
+    "1005a2328906a9062f2addb3": "Fuente de verdad: el repositorio. Lee el archivo antes de afirmar algo sobre él.",
+    "614a786c6cc7ec57327f49f1": "Listo = <npm test> pasa sin errores. No declares “listo” antes de eso.",
+    "3c9354af7d443a52985cb87c": "- git push, deploy o publicación",
+    "dfd99aa5a37709b78bef7fbe": "- borrar archivos o carpetas fuera de <carpeta de trabajo>",
+    "2a2b0f71acb3a62e50fb0bde": "- modificar <.env / datos de clientes>",
+    "a25f47c3b120746f77ee5b9b": "Si te lo piden, di que me lo paso a mí.",
+    "95ac642ef7cad13d7b1e8f72": "- un test falla dos veces seguidas",
+    "5d7ae4d08db6b6a9a2d14741": "- que la tarea requiera tocar fuera de <carpeta de trabajo>",
+    "21de974eba8d4c7c1648fa5e": "Anota cada fallo en ⟪P0⟫: fecha, qué se rompió, corrección más pequeña.",
+    "4826a3564f7c74407cd53c64": "Cómo verificar: abre una sesión nueva y pide “resuma en 3 líneas sus reglas en este proyecto”; debe citar el nivel, el criterio de “listo” y las prohibiciones.",
+    "ed6a005172ac9e9321f56eb0": "Objetivo: armar la ficha de tu agente por uno de los dos caminos.",
+    "16fc932a09b6a9419af9dd28": "Camino A · navegador (sin instalar nada)",
+    "ce80760d22f769d81419bcaf": "Abre ⟪P0⟫",
+    "9e4d46df5764153fb3bed516": "Para empezar desde un área ya lista: ⟪P0⟫<clinica | tienda | contabil | profesor | inmobiliaria | abogacia | restaurante | ong | salon | agencia>",
+    "05d0f4b34e7f9eac3e22006d": "Ejemplos listos: ⟪P0⟫",
+    "2347f6d9093fe76763d258e0": "Camino B · terminal con Claude Code",
+    "adbdabb606dce9ff70cfbdc3": "En Claude Code, dentro de la carpeta del proyecto:",
+    "3a98e439ac4e58884fd8b3ab": "/ficha-agente quiero delegar <la tarea que elijas>",
+    "46287f04b37d4fe37e45feb2": "Cómo verificar: al final debes tener el nivel con el motivo en 1 frase, una instrucción lista para pegar y 3 pruebas. En el camino B, confirma que el archivo ⟪P0⟫ fue creado."
+  },
+  "metrics": {
+    "stage": "curso-7pa:content",
+    "model": "openai/gpt-5.4-nano",
+    "lang": "Spanish (Latin America)",
+    "input_items": 22,
+    "source_characters": 2064,
+    "usage": {
+      "prompt_tokens": 1295,
+      "completion_tokens": 780,
+      "total_tokens": 2075,
+      "cost": 0.001234,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.001234,
+        "upstream_inference_prompt_cost": 0.000259,
+        "upstream_inference_completions_cost": 0.000975
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "cost_usd": 0.001234,
+    "seconds": 5.5,
+    "id": "gen-1790190128-LyxggQAuGBYW6eQsvUA1",
+    "returned_model": "openai/gpt-5.4-nano",
+    "cost_kind": "reported"
+  }
+}

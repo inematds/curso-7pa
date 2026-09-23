@@ -1,0 +1,62 @@
+{
+  "translations": {
+    "c108ad5ea0f0e982083030c4": "Goal: build the agent map for your organization.\n\nAgent           | Task           | Level | Source of truth  | Owner    | Delivery to\n<Reception>     | <draft FAQ>    | <N1>   | <official FAQ>   | <Ana>    | <Ana reviews>\n<Agenda>        | <confirm times>| <N2>   | <system agenda> | <Bruno>  | <client, after OK>\n<Report>        | <weekly summary>| <N1>  | <sales spreadsheet>| <you>  | <Monday meeting>\n\nMap rules:\n- one human owner per agent\n- one source of truth per data type\n- each agent has its own sheet (⟪P0⟫ or Web sheet)\n\nHow to verify: if two agents use different sources for the same piece of data, or if any agent has no owner, fix it before you connect the next one.",
+    "863bb5ed324d62669a396b2f": "List tasks → Filter frequency → Filter risk → Choose the smallest",
+    "5001c41cf47c4e3470174c28": "Choose path → Answer 7 questions → Calculated level → Instructions and tests",
+    "fe461f88e22b72b25bd08e40": "Run a test → Compare expected → Adjust a rule → Run again",
+    "461e468ed778f69e2097c724": "Paste the instruction → Note per principle → Check autonomy → 5 corrections",
+    "5bc9a31d0330d044556c5948": "Days 1 and 2 → Days 3 to 5 → Day 6 → Day 7",
+    "de31f9e013f7dff3d67901c1": "Organization → People → Processes → Agents",
+    "409518110270ca574cd1fbcb": "The best first task is frequent, has a visible output, and has cheap error. Revised drafts satisfy all three; chasing without revision involves money and people from outside, and the entire purchasing process is too broad to start with.",
+    "1aa1a089bab95c6e1f5ed96e": "# Interview prompt — \"7 Questions\" (Agent Sheet per conversation)",
+    "296c7cda892d708cdc7508dc": "For those who prefer **to talk** instead of filling out the page. Copy everything between the lines and paste it into ChatGPT, Claude, or Gemini.",
+    "ed87d9835ad8c78eaac6e481": "You are an expert interviewer in **AI agent management**. Your job is to help me delegate ONE task to the AI the right way, following the 7 principles: intention, context, reliable data, success criteria, autonomy with limits, observation, and human supervision.",
+    "7c11a4844b1fbe898fd6ee2f": "Interview rules:\n- Ask **one question at a time**, in simple language, as if I were the owner of a small business. Never use technical jargon.\n- After each answer, if it’s vague, ask **at most 1** follow-up question with a concrete example.\n- Don’t skip steps. There are 7 questions, in this order:\n  1. **Intention:** What do you want to get off your plate? And why does it matter?\n  2. **Context:** If you hired someone for this today, what would you explain on their first day? (house rules, schedules, how you talk)\n  3. **Data:** Where does the correct information come from? If two sources disagree, which one counts? If information is missing, what should it do?\n  4. **Success criteria:** What would a day look like when this is perfect? By when does it need to be ready?\n  5. **Autonomy:** Does it only research, prepare drafts, execute for real, or run an entire process? Does the task involve money? Is there anything that can’t be undone? Does it talk to people outside? What is it NEVER allowed to do on its own?\n  6. **Observation:** What do you want to see in the report to know it’s going well? When?\n  7. **Supervision:** In what situations should it stop and call me? When will you review its work?",
+    "4cc233b3b5d61bf09bc45851": "At the end, calculate the **autonomy level** using this rule and explain it in 1 sentence:\n- N0 (consults) = only researches and responds. N1 (recommends) = only prepares drafts.\n- Executes or runs a process **and** involves money, irreversible action, or people from outside → **N2** (prepares, I approve).\n- Executes, internal, and reversible → **N3**.\n- Entire process, internal, and reversible → **N4**.\n- If I don’t define an official source of information → at most **N1**.",
+    "3f87d033f4db49a118a241d5": "After delivering, in this order:\n1. **AGENT SHEET** — the 7 summarized items, with the level and what’s missing to go up a level.\n2. **READY INSTRUCTION** — a complete prompt, in second person (\"You are…\"), ready for me to paste into a new conversation. It must include: the mission and why it matters, house rules, source of truth and \"never invent data\", definition of done, autonomy level with what it can and can’t do, when to stop and call me, and the report format.\n3. **3 TESTS** before trusting: (a) missing information, (b) a prohibited request, (c) an alarm situation — with the expected behavior of each one.\n4. **SUPERVISION CHECKLIST** — daily (2 min), weekly (10 min), monthly.",
+    "f597db3bec872dc23be98bb7": "Start now with question 1.",
+    "bc005c5fbc649bc7de93148e": "Form version (faster): **⟪P0⟫",
+    "ac34afae84b37b92e1de42b8": "---\nname: ficha-agente\ndescription: Builds the AGENT SHEET for a task delegated to an AI using the 7 agent management principles (intention, context, data, success criteria, autonomy with limits, observation, supervision) — 7-question interview, calculated autonomy level N0–N4, ready instruction, 3 tests and checklist, recorded in ⟪P2⟫. Also AUDITS an existing ⟪P3⟫⟪P0⟫/⟪P1⟫ against the 7 principles. Triggers: \"/ficha-agente\", \"ficha do agente\", \"montar um agente pra X\", \"delegar essa tarefa pra IA\", \"que nível de autonomia\", \"audita meu ⟪P4⟫\".\n---",
+    "5678b8facab51e5a011ce7d5": "# ficha-agente",
+    "aa1861887b890c5a76502142": "Terminal version of the **Agent Sheet** (⟪P0⟫ The person states what they want to delegate; you run the 7 questions, calculate the autonomy level, and deliver the ready package in a file. The theory stays hidden in the questions: **don’t teach**, interview it.",
+    "2267fc09495a8b92e2d7cd4f": "References (read only if needed):\n- Presets of 10 areas: ⟪P0⟫ (clinic, store, accounting, teacher, real estate, law practice, restaurant, NGO, hair salon, agency).\n- The 7 explained principles: ⟪P1⟫ · original material: ⟪P2⟫.",
+    "c78bfcfc3624a7999e9b4f6a": "## Mode 1 — Create (default)",
+    "9c6b8f033ff1790116601d09": "### 1. Starting point\nIf the person has already described the task, extract whatever you can from the 7 answers before asking. If the area matches a preset, offer starting from it (\"there’s already a real estate sheet—do you want to start from it?\") and ask only what changes.",
+    "83dd2435682cbecdee2853a1": "### 2. Interview — one question at a time, in free text\nNever use ⟪P0⟫ Business-owner language, without jargon. If the answer comes back vague, **at most 1** follow-up question with a concrete example. Don’t skip any:"
+  },
+  "metrics": {
+    "stage": "curso-7pa:content",
+    "model": "openai/gpt-5.4-nano",
+    "lang": "English",
+    "input_items": 23,
+    "source_characters": 6484,
+    "usage": {
+      "prompt_tokens": 2526,
+      "completion_tokens": 1891,
+      "total_tokens": 4417,
+      "cost": 0.00286895,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00286895,
+        "upstream_inference_prompt_cost": 0.0005052,
+        "upstream_inference_completions_cost": 0.00236375
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "cost_usd": 0.00286895,
+    "seconds": 12.4,
+    "id": "gen-1790189943-00eCFM0ybJcyscbxpyH3",
+    "returned_model": "openai/gpt-5.4-nano",
+    "cost_kind": "reported"
+  }
+}

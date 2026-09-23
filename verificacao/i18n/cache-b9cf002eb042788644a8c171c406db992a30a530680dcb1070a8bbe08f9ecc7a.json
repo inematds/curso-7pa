@@ -1,0 +1,40 @@
+{
+  "translations": {
+    "7b2cb0c7c235024048c8f0b8": "⟪P0⟫Ficha del Agente (7 preguntas)⟪P1⟫⟪P2⟫Galería con 10 fichas listas⟪P3⟫⟪P4⟫Guía de los 7 principios⟪P5⟫⟪P6⟫El secreto de los 7 principios⟪P7⟫⟪P8⟫Prompt del entrevistador (.md)⟪P9⟫⟪P10⟫Habilidad /ficha-agente (.md)⟪P11⟫"
+  },
+  "metrics": {
+    "stage": "curso-7pa:content-repair",
+    "model": "openai/gpt-5.4-nano",
+    "lang": "Spanish (Latin America)",
+    "input_items": 1,
+    "source_characters": 238,
+    "usage": {
+      "prompt_tokens": 664,
+      "completion_tokens": 170,
+      "total_tokens": 834,
+      "cost": 0.0003453,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0003453,
+        "upstream_inference_prompt_cost": 0.0001328,
+        "upstream_inference_completions_cost": 0.0002125
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "cost_usd": 0.0003453,
+    "seconds": 2.36,
+    "id": "gen-1790189533-90ne3cRBnW7Sv41US1CG",
+    "returned_model": "openai/gpt-5.4-nano",
+    "cost_kind": "reported"
+  }
+}

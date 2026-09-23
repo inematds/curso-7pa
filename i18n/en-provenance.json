@@ -1,0 +1,9 @@
+{
+  "signature": "d070cb17616c9a5c930f3bfc60a9564000163a1c205ee5e5ca475e3186c1c3a0",
+  "model": "openai/gpt-5.4-nano",
+  "source_version": "course-i18n-1.0.0",
+  "prompt_sha256": "891f8c2b715056b86559707ed9def326fb2f11b65e2da8c1193f7b1e68c57ea9",
+  "context": "curso-7pa",
+  "price_source": "https://openrouter.ai/api/v1/models",
+  "price_checked": "2026-09-22"
+}

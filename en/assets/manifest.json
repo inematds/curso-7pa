@@ -1,0 +1,77 @@
+{
+  "course": "gestao-agentes-7pa",
+  "tracks": [
+    {
+      "n": "1",
+      "title": "A virada",
+      "modules": [
+        {
+          "id": "1-1",
+          "title": "Da ferramenta à equipe",
+          "topics": 6,
+          "href": "curso/trilha1/modulo-1-1.html"
+        },
+        {
+          "id": "1-2",
+          "title": "Separe o marketing do método",
+          "topics": 6,
+          "href": "curso/trilha1/modulo-1-2.html"
+        }
+      ]
+    },
+    {
+      "n": "2",
+      "title": "Delegar bem",
+      "modules": [
+        {
+          "id": "2-1",
+          "title": "Intenção e contexto",
+          "topics": 6,
+          "href": "curso/trilha2/modulo-2-1.html"
+        },
+        {
+          "id": "2-2",
+          "title": "Dados confiáveis e critério de sucesso",
+          "topics": 6,
+          "href": "curso/trilha2/modulo-2-2.html"
+        }
+      ]
+    },
+    {
+      "n": "3",
+      "title": "Autonomia e supervisão",
+      "modules": [
+        {
+          "id": "3-1",
+          "title": "Autonomia com limites",
+          "topics": 6,
+          "href": "curso/trilha3/modulo-3-1.html"
+        },
+        {
+          "id": "3-2",
+          "title": "Observação e supervisão",
+          "topics": 6,
+          "href": "curso/trilha3/modulo-3-2.html"
+        }
+      ]
+    },
+    {
+      "n": "4",
+      "title": "O segredo e o projeto",
+      "modules": [
+        {
+          "id": "4-1",
+          "title": "O segredo: você já sabe isso",
+          "topics": 6,
+          "href": "curso/trilha4/modulo-4-1.html"
+        },
+        {
+          "id": "4-2",
+          "title": "Projeto final: seu agente em produção",
+          "topics": 6,
+          "href": "curso/trilha4/modulo-4-2.html"
+        }
+      ]
+    }
+  ]
+}

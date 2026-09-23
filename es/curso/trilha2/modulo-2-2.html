@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<script>
+(function () {
+  try {
+    var html = document.documentElement;
+    var DEF = { theme: 'inema-dark', font: 'inter', fontScale: 100, lineWidth: 68, leading: 1.7, accent: 'emerald' };
+    function clone(o) { var r = {}; for (var x in o) r[x] = o[x]; return r; }
+    var p = clone(DEF);
+    try {
+      var raw = localStorage.getItem('inema.prefs');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          for (var k in DEF) if (parsed[k] != null) p[k] = parsed[k];
+        }
+      } else {
+        // fallback ao tema legado do v1
+        var legacy = localStorage.getItem('theme');
+        if (legacy === 'light') p.theme = 'claro';
+        else if (legacy === 'dark') p.theme = 'inema-dark';
+      }
+    } catch (e) { p = clone(DEF); }
+
+    // mapa tema -> (.dark on/off, data-theme, color-scheme)
+    var THEMES = {
+      'inema-dark': { dark: true,  attr: null,        cs: 'dark'  },
+      'claro':      { dark: false, attr: null,        cs: 'light' },
+      'sepia':      { dark: false, attr: 'sepia',     cs: 'light' },
+      'foco':       { dark: null,  attr: 'foco',      cs: null    },  // herda eixo atual
+      'contraste':  { dark: true,  attr: 'contraste', cs: 'dark'  }
+    };
+    var t = THEMES[p.theme] || THEMES['inema-dark'];
+
+    if (t.dark === true) html.classList.add('dark');
+    else if (t.dark === false) html.classList.remove('dark');
+    // 'foco' (null) preserva o que ja houver no atributo class do <html>
+
+    if (t.attr) html.setAttribute('data-theme', t.attr);
+    else html.removeAttribute('data-theme');
+
+    html.style.colorScheme = (t.cs ? t.cs : (html.classList.contains('dark') ? 'dark' : 'light'));
+
+    html.setAttribute('data-font', p.font || 'inter');
+    html.setAttribute('data-accent', p.accent || 'emerald');
+
+    // variaveis de leitura (espelham learn.js / learn.css) ANTES do paint
+    var s = html.style;
+    var scale = (+p.fontScale || 100);
+    s.setProperty('--inema-font-scale', (scale / 100).toString());
+    s.setProperty('font-size', scale + '%');               // :root em %, nunca px
+    s.setProperty('--measure', (+p.lineWidth || 68) + 'ch');
+    s.setProperty('--lh-body', (+p.leading || 1.7).toString());
+    var fam = p.font === 'system'
+      ? 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
+      : (p.font === 'leitura'
+        ? '"Atkinson Hyperlegible", "Inter", system-ui, sans-serif'
+        : '"Inter", system-ui, sans-serif');
+    s.setProperty('--font-body', fam);
+
+    var ACC = {
+      emerald: [152, 76, 45], blue: [217, 91, 60], purple: [258, 90, 66],
+      amber: [38, 92, 50], teal: [174, 72, 41], rose: [350, 89, 60]
+    };
+    var a = ACC[p.accent] || ACC.emerald;
+    s.setProperty('--accent-h', a[0] + '');
+    s.setProperty('--accent-s', a[1] + '%');
+    s.setProperty('--accent-l', a[2] + '%');
+    s.setProperty('--accent', 'hsl(' + a[0] + ' ' + a[1] + '% ' + a[2] + '%)');
+  } catch (err) {
+    // qualquer falha => default dark, preserva a marca
+    try { document.documentElement.classList.add('dark'); document.documentElement.style.colorScheme = 'dark'; } catch (e) {}
+  }
+})();
+</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Datos confiables y criterio de éxito | Gestión de Agentes de IA · INEMA</title>
+<meta content="Curso de gestión de agentes de IA: intención, contexto, datos, criterio de éxito, autonomía con límites, observación y supervisión humana. Con la Ficha del Agente, galería de casos y proyecto final." name="description"/>
+<meta content="gestao-agentes-7pa-es" name="inema-course"/>
+<meta content="../../" name="course-root"/>
+<script data-inema-manifest="" type="application/json">{"course": "gestao-agentes-7pa-es", "tracks": [{"n": "1", "title": "El punto de quiebre", "modules": [{"id": "1-1", "title": "De la herramienta al equipo", "topics": 6, "href": "curso/trilha1/modulo-1-1.html"}, {"id": "1-2", "title": "Separa el marketing del método", "topics": 6, "href": "curso/trilha1/modulo-1-2.html"}]}, {"n": "2", "title": "Delegar bien", "modules": [{"id": "2-1", "title": "Intención y contexto", "topics": 6, "href": "curso/trilha2/modulo-2-1.html"}, {"id": "2-2", "title": "Datos confiables y criterio de éxito", "topics": 6, "href": "curso/trilha2/modulo-2-2.html"}]}, {"n": "3", "title": "Autonomía y supervisión", "modules": [{"id": "3-1", "title": "Autonomía con límites", "topics": 6, "href": "curso/trilha3/modulo-3-1.html"}, {"id": "3-2", "title": "Observación y supervisión", "topics": 6, "href": "curso/trilha3/modulo-3-2.html"}]}, {"n": "4", "title": "El secreto y el proyecto", "modules": [{"id": "4-1", "title": "El secreto: tú ya sabes esto", "topics": 6, "href": "curso/trilha4/modulo-4-1.html"}, {"id": "4-2", "title": "Proyecto final: tu agente en producción", "topics": 6, "href": "curso/trilha4/modulo-4-2.html"}]}]}</script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="../../assets/course.css" rel="stylesheet"/>
+<link href="../../assets/learn.css" rel="stylesheet"/>
+<link href="../../assets/patches.css" rel="stylesheet"/>
+<link href="https://inematds.github.io/curso-7pa/curso/trilha2/modulo-2-2.html" hreflang="pt-BR" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/en/curso/trilha2/modulo-2-2.html" hreflang="en" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha2/modulo-2-2.html" hreflang="es" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/curso/trilha2/modulo-2-2.html" hreflang="x-default" rel="alternate"/><link href="https://inematds.github.io/curso-7pa/es/curso/trilha2/modulo-2-2.html" rel="canonical"/><style id="course-language-css">[data-course-languages]{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:1.25rem;padding:.65rem;justify-content:center;background:#111827;color:#f3f4f6}[data-course-languages] a{color:inherit;font:14px system-ui}[data-course-languages] [aria-current]{font-weight:bold;text-decoration:underline}[data-course-languages] a:focus-visible{outline:2px solid #38bdf8;outline-offset:4px}body{padding-bottom:75px}</style></head>
+<body class="track-2">
+<a class="skip" href="#conteudo">Saltar al contenido</a>
+<nav aria-label="Navegación principal" class="site-nav">
+<div class="wrap nav-row">
+<a aria-label="7 Principios, inicio" class="brand" href="../../index.html">
+<svg aria-hidden="true" fill="none" viewbox="0 0 32 32">
+<circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2.2"></circle>
+<circle cx="16" cy="16" fill="currentColor" r="3.2"></circle>
+<path d="M16 4v5M16 23v5M4 16h5M23 16h5" stroke="currentColor" stroke-width="2.2"></path>
+</svg>
+<span class="brand-name">7 PRINCIPIOS</span>
+</a>
+<a class="text-sky-400" href="https://inema.club" rel="noopener" target="_blank">INEMA.CLUB</a>
+<span aria-hidden="true" class="nav-sep">-</span>
+<a class="nav-pro text-amber-700 dark:text-slate-300" href="https://inema.pro" rel="noopener" target="_blank">PRO</a>
+<div class="nav-links">
+<a class="" href="../../curso/trilha1/index.html">
+<span class="nav-full">El giro</span>
+<span class="nav-short">T1</span>
+</a>
+<a aria-current="page" class="active" href="../../curso/trilha2/index.html">
+<span class="nav-full">Delegar bien</span>
+<span class="nav-short">T2</span>
+</a>
+<a class="" href="../../curso/trilha3/index.html">
+<span class="nav-full">Autonomía y supervisión</span>
+<span class="nav-short">T3</span>
+</a>
+<a class="" href="../../curso/trilha4/index.html">
+<span class="nav-full">El secreto y el proyecto</span>
+<span class="nav-short">T4</span>
+</a>
+</div>
+<button aria-label="Alternar tema claro y oscuro" class="theme-toggle" id="theme-toggle">
+<svg aria-hidden="true" fill="none" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"></circle>
+<path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2" stroke="currentColor" stroke-width="1.6"></path>
+</svg>
+</button>
+</div>
+</nav>
+<div class="wrap studybar">
+<div class="tools">
+<button data-inema-journey-open="">Mi recorrido</button>
+<button data-course-resume="">Continuar lectura</button>
+<div class="appearance-wrap">
+<button aria-controls="appearance" aria-expanded="false" data-inema-appearance-toggle="#appearance">Apariencia</button>
+<div class="inema-appearance-pop" data-inema-appearance="" data-open="false" id="appearance">
+<h3>Tema</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-theme="inema-dark">Oscuro</button>
+<button aria-pressed="false" data-inema-set-theme="claro">Claro</button>
+<button aria-pressed="false" data-inema-set-theme="sepia">Sepia</button>
+<button aria-pressed="false" data-inema-set-theme="foco">Enfoque</button>
+<button aria-pressed="false" data-inema-set-theme="contraste">Alto contraste</button>
+</div>
+<h3>Fuente</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-font="inter">Inter / sistema</button>
+<button aria-pressed="false" data-inema-set-font="system">Sistema</button>
+<button aria-pressed="false" data-inema-set-font="leitura">Lectura</button>
+</div>
+<h3>Tamaño</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-fontscale="100">100%</button>
+<button aria-pressed="false" data-inema-set-fontscale="112">112%</button>
+<button aria-pressed="false" data-inema-set-fontscale="125">125%</button>
+</div>
+<h3>Ancho de texto</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-linewidth="60">Estrecha</button>
+<button aria-pressed="false" data-inema-set-linewidth="68">Media</button>
+<button aria-pressed="false" data-inema-set-linewidth="75">Ancha</button>
+</div>
+<h3>Entrelineado</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-leading="1.45">Compacta</button>
+<button aria-pressed="false" data-inema-set-leading="1.7">Cómoda</button>
+</div>
+<h3>Ajuste de los controles</h3>
+<div class="inema-segment">
+<button aria-pressed="false" data-inema-set-accent="emerald">Verde</button>
+<button aria-pressed="false" data-inema-set-accent="blue">Azul</button>
+<button aria-pressed="false" data-inema-set-accent="purple">Morado</button>
+<button aria-pressed="false" data-inema-set-accent="amber">Ámbar</button>
+<button aria-pressed="false" data-inema-set-accent="teal">Turquesa</button>
+<button aria-pressed="false" data-inema-set-accent="rose">Rosa</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-label="Progreso de lectura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="curso" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+</div>
+<noscript>
+<p class="wrap no-script">Puedes leer todas las clases sin JavaScript. El progreso, las notas y los controles de apariencia necesitan JavaScript.</p>
+</noscript>
+<main class="wrap" id="conteudo">
+<div class="breadcrumb">
+<a href="../../index.html">Inicio</a> / <a href="index.html">Delegar bien</a> / Módulo 2.2</div>
+<header class="hero">
+<span class="pill">MÓDULO 2.2</span>
+<h1>Datos confiables y criterio de éxito</h1>
+<p class="lead">Define de dónde viene la verdad, qué hacer cuando falta y cómo saber que el trabajo quedó listo.</p>
+<p>
+<strong>Al final:</strong> Escribir la fuente de verdad, la regla de conflicto, la definición de listo y las 3 pruebas de un agente antes de ponerlo a operar.</p>
+</header>
+<div class="stats">
+<div class="stat">
+<strong>6</strong>
+<span>temas</span>
+</div>
+<div class="stat">
+<strong>55 min</strong>
+<span>estimación con práctica</span>
+</div>
+<div class="stat">
+<strong>6</strong>
+<span>ejercicios comentados</span>
+</div>
+<div class="stat">
+<strong>1</strong>
+<span>verificación final</span>
+</div>
+</div>
+<div class="reading-layout">
+<aside aria-label="Índice del módulo" class="toc" data-inema-toc="">
+<h2>En este módulo</h2>
+<span data-inema-section-counter="">Sección 1 de 6</span>
+<ol>
+<li>
+<a href="#topico-1">1. La fuente de verdad</a>
+</li>
+<li>
+<a href="#topico-2">2. Cuando dos fuentes discrepan</a>
+</li>
+<li>
+<a href="#topico-3">3. La regla de oro: nunca inventar</a>
+</li>
+<li>
+<a href="#topico-4">4. Definición de listo</a>
+</li>
+<li>
+<a href="#topico-5">5. Métricas simples que cualquiera puede verificar</a>
+</li>
+<li>
+<a href="#topico-6">6. Las 3 pruebas antes de confiar</a>
+</li>
+</ol>
+<div aria-label="Progreso de lectura" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="meter" data-inema-meter="modulo:2-2" role="progressbar">
+<div class="meter-top">
+<span data-inema-meter-frac="">0 de 0</span>
+<span data-inema-meter-pct="">0%</span>
+</div>
+<div class="inema-bar">
+<div data-inema-meter-fill="">
+</div>
+</div>
+</div>
+<p class="muted">Selecciona un fragmento de las explicaciones para resaltarlo o tomar notas.</p>
+</aside>
+<article class="lesson-content" data-inema-module="2-2" data-inema-track="2">
+<section class="lesson" data-inema-topic="modulo-2-2#topico-1" id="topico-1">
+<div class="lesson-head">
+<span class="circle">1</span>
+<h2>La fuente de verdad</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Fuente oficial → No vale → Quién actualiza → Dice el origen" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-2-1-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-2-1-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-2-1-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-2-1-grid)" height="200" width="720"></rect>
+<path d="M225 100 C310 100 315 34 365 34" fill="none" marker-end="url(#d2-2-1-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 100 365 100" fill="none" marker-end="url(#d2-2-1-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M225 100 C310 100 315 166 365 166" fill="none" marker-end="url(#d2-2-1-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-2-1-glow)" height="70" rx="10" stroke="#60a5fa" stroke-width="2" width="205" x="20" y="65"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="122.5" y="105.0">Fuente oficial</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="10"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="39.0">No vale</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="76"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="105.0">Quién actualiza</text>
+</g>
+<g>
+<rect fill="#111827" height="48" rx="10" stroke="#38bdf8" stroke-width="2" width="325" x="370" y="142"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="532.5" y="171.0">Dice el origen</text>
+</g>
+</svg>
+</div>
+<figcaption>El árbol separa lo que es fuente de verdad de lo que parece información pero no vale.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m2-2-t1-p1" id="m2-2-t1-p1">La fuente de verdad es el lugar que declaras como oficial para un tipo de información: la agenda del sistema, el panel de pedidos, la tabla de precios actual. Todo lo que venga de otro lugar no vale, aunque parezca correcto. La Ficha del Agente pide las dos cosas: qué vale y qué no vale.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m2-2-t1-p2" id="m2-2-t1-p2">Ningún agente es mejor que los datos con los que trabaja. Si puede usar la hoja antigua, el pantallazo del cliente y una anotación en papel, cada respuesta viene de un lugar distinto y no puedes comprobar nada. Una fuente declarada hace que cada error sea rastreable: sabes dónde mirar.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Vale</strong>la fuente oficial, con nombre y lugar.</div>
+<div class="key">
+<strong>No vale</strong>fuentes parecidas que tú prohíbes.</div>
+<div class="key">
+<strong>Actualización</strong>quién mantiene la fuente al día.</div>
+<div class="key">
+<strong>Rastreo</strong>el agente dice de dónde sacó cada dato.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 2.2.1</span>
+<button data-copy="code-2-2-1">Copiar ejemplo</button>
+</div>
+<pre id="code-2-2-1">
+<code>Objetivo: decirle al agente de dónde viene la información correcta y de dónde no viene.
+
+## De dónde viene la información
+- La fuente oficial es: &lt;ej.: el panel de pedidos de la tienda&gt;.
+- No uses: &lt;ej.: lo que dice el cliente que compró sin número de pedido, capturas y mensajes antiguos&gt;.
+- Quién mantiene la fuente al día: &lt;ej.: yo, todos los días a las 9h&gt;.
+- En cada respuesta, di de dónde sacaste el dato.
+
+Cómo verificar: pídele al agente algo que solo existe en la fuente prohibida. Debe decir que no lo encontró en la fuente oficial.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Nombra la fuente oficial de forma que otra persona pueda encontrarla sin preguntar.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Decir “usa la información de la empresa” sin señalar qué archivo o sistema.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Llévalo a tu agente.</strong> El árbol separa lo que es fuente de verdad de lo que parece información pero no vale. Usa esta idea para revisar la ficha de tu agente antes de avanzar.</aside>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Para tu tarea, escribe una fuente que vale y dos que no valen.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Ejemplo de la agencia: vale el panel oficial de anuncios de cada cliente; no vale una captura enviada por el cliente ni un número mencionado en una reunión. Las fuentes prohibidas suelen ser las más fáciles de encontrar y por eso necesitan estar escritas.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-2#topico-2" id="topico-2">
+<div class="lesson-head">
+<span class="circle">2</span>
+<h2>Cuando dos fuentes discrepan</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Las fuentes no coinciden → Gana la oficial → Anota el conflicto → Tú corriges la fuente" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-2-2-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-2-2-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-2-2-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-2-2-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d2-2-2-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-2-2-glow)" height="74" rx="10" stroke="#60a5fa" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Las fuentes discrepan</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d2-2-2-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">Gana la oficial</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d2-2-2-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">Anota el conflicto</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Tú corriges la fuente</text>
+</g>
+</svg>
+</div>
+<figcaption>El flujo muestra que el conflicto no termina en la elección: continúa hasta el informe y la corrección de la fuente.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m2-2-t2-p1" id="m2-2-t2-p1">Incluso con una fuente oficial, los datos discuten: el sistema dice una cosa, el cliente jura otra, la hoja de cálculo de la semana pasada dice una tercera. La regla de conflicto es la frase que indica quién manda en esos casos y qué hacer con la divergencia. Lo más importante es que el conflicto se registre, y no se resuelva en silencio.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m2-2-t2-p2" id="m2-2-t2-p2">Un conflicto resuelto en silencio se vuelve un error invisible: el agente elige una versión, sigue adelante y nadie se entera. Registrado, el conflicto se vuelve información útil. Si el inventario del sistema y el conteo de la cocina no coinciden cada semana, el problema no es del agente, es del proceso de conteo.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Jerarquía</strong>cuál fuente gana a cuál.</div>
+<div class="key">
+<strong>En caso de duda</strong>qué hacer si la oficial parece equivocada.</div>
+<div class="key">
+<strong>Registro</strong>anotar el conflicto en el informe.</div>
+<div class="key">
+<strong>Corrección</strong>quién corrige la fuente que estaba mal.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 2.2.2</span>
+<button data-copy="code-2-2-2">Copiar ejemplo</button>
+</div>
+<pre id="code-2-2-2">
+<code>Objetivo: decirle al agente quién manda cuando dos fuentes no coinciden.
+
+## Si la información entra en conflicto
+- &lt;fuente oficial, ej.: el conteo cargado en el sistema&gt; vale más que &lt;otra fuente, ej.: una estimación “de cabeza” o el conteo de la semana pasada&gt;.
+- Si la fuente oficial parece estar mal: no lo corrijas por tu cuenta. Marca el ítem como &lt;ej.: volver a contar&gt; y continúa con los otros.
+- Anota cada conflicto en el reporte así: ítem · lo que dice cada fuente · lo que hiciste.
+
+Cómo verificar: dale al agente un caso con dos valores diferentes y revisa si usa la oficial y anota el conflicto.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Del concepto a la acción</h3>
+<ol>
+<li>Las fuentes no coinciden: identificar la condición inicial.</li>
+<li>Gana la oficial: aplicar la decisión descrita.</li>
+<li>Anota el conflicto: comprobar el efecto en el ejemplo.</li>
+<li>Tú corriges la fuente: registrar la evidencia de salida.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Lee los conflictos anotados toda semana; si el conflicto se repite, apunta a un proceso roto.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Dejar que el agente “elija el valor más probable” cuando las fuentes se contradicen.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Describe un conflicto de datos que ya pasó en tu trabajo y escribe la regla que lo resolvería.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Ejemplo de la ONG: la hoja de cálculo del turno dice que Ana está el sábado, pero en el grupo ella dijo que lo cambió con Pedro. Regla: vale la hoja de cálculo; el agente pregunta a la coordinación y no asigna a nadie por cuenta propia, y registra el cambio acordado fuera de la hoja de cálculo.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-2#topico-3" id="topico-3">
+<div class="lesson-head">
+<span class="circle">3</span>
+<h2>La regla de oro: nunca inventar</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Llega la pregunta → ¿Existe el dato? → No: avisa → Sí: responde y cita" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-2-3-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-2-3-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-2-3-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-2-3-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d2-2-3-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-2-3-glow)" height="62" rx="10" stroke="#60a5fa" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">La pregunta llega</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d2-2-3-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">¿Existe el dato?</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d2-2-3-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">No: avisa</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="60.0">Sí: responde y cita</text>
+</g>
+</svg>
+</div>
+<figcaption>Los pasos muestran la bifurcación que evita la alucinación: sin dato en la fuente, el camino es avisar; nunca completar.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m2-2-t3-p1" id="m2-2-t3-p1">La alucinación es el nombre que se le da cuando la IA produce una información falsa con apariencia de verdadera: un horario que no existe, una ley que nadie escribió, un precio inventado. No miente a propósito; completa el texto con lo que parece probable. Por eso la instrucción necesita una regla explícita: si falta un dato, el agente avisa y no inventa.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m2-2-t3-p2" id="m2-2-t3-p2">El dato inventado es el error más peligroso porque no parece un error. Un plazo de entrega adivinado suena tan seguro como uno real. Decirle al agente qué hacer cuando falta información, con una acción concreta, reemplaza la suposición por un aviso que tú puedes atender.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Alucinación</strong>respuesta falsa con cara de cierta.</div>
+<div class="key">
+<strong>Disparador</strong>pregunta sin dato en la fuente.</div>
+<div class="key">
+<strong>Regla</strong>avisar y no completar.</div>
+<div class="key">
+<strong>Acción concreta</strong>marcar pendiente, pedir el dato o pasar el caso a ti.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 2.2.3</span>
+<button data-copy="code-2-2-3">Copiar ejemplo</button>
+</div>
+<pre id="code-2-2-3">
+<code>Objetivo: evitar que el agente invente datos cuando falta información.
+
+## Si falta información
+- Nunca inventes datos, nombres, números, fechas, precios ni leyes.
+- Si la información no está en la fuente oficial: &lt;acción, ej.: deja un espacio marcado [CONFERIR] y avísame&gt;.
+- Es mejor decir “no encontré” que dar una respuesta aproximada.
+- Al citar un dato, di de dónde salió.
+
+Cómo verificar: pregunta algo que no está en la fuente, como &lt;ej.: el precio de un servicio que el salón no ofrece&gt;, y revisa si responde que no lo encontró.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Dale al agente una acción concreta para el dato que falta, como marcar “pendiente” y seguir.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Escribir solo “sé preciso”, sin decir qué hacer cuando la información no existe.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Escribe tu regla de “si falta información” con una acción que puedas dar seguimiento.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Ejemplo de la abogacía: “Si no encuentro una decisión sobre el tema en los sitios oficiales de los tribunales, digo que no la encontré y no cito una decisión sin número de expediente.” La acción es verificable: basta con buscar el número citado.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-2#topico-4" id="topico-4">
+<div class="lesson-head">
+<span class="circle">4</span>
+<h2>Definición de listo</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Día perfecto → Resultado visible → Plazo → Excepciones separadas" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-2-4-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-2-4-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-2-4-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-2-4-grid)" height="200" width="720"></rect>
+<path d="M175 100 H193" fill="none" marker-end="url(#d2-2-4-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-2-4-glow)" height="74" rx="10" stroke="#60a5fa" stroke-width="2" width="150" x="20" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="105.0">Día perfecto</text>
+</g>
+<path d="M350 100 H368" fill="none" marker-end="url(#d2-2-4-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="105.0">Resultado visible</text>
+</g>
+<path d="M525 100 H543" fill="none" marker-end="url(#d2-2-4-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="105.0">Plazo</text>
+</g>
+<g>
+<rect fill="#111827" height="74" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="63"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="105.0">Excepciones separadas</text>
+</g>
+</svg>
+</div>
+<figcaption>El flujo transforma la imagen del día perfecto en un criterio que cualquier persona puede comprobar.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m2-2-t4-p1" id="m2-2-t4-p1">El criterio de aceptación, o definición de listo, es la descripción de cómo queda el resultado cuando el trabajo está bien hecho. La pregunta de la Ficha es “¿cómo es un día en que eso quedó perfecto?”. La respuesta debe ser observable: algo que tú ves o cuentas, no algo que tú sientes.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m2-2-t4-p2" id="m2-2-t4-p2">Sin una definición de listo, el agente se detiene cuando cree que terminó, y siempre cree que terminó. “Confirmé las consultas” puede significar haber enviado tres mensajes. Con un criterio observable, él sabe cuándo la tarea terminó de verdad y tú sabes qué comprobar.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Resultado</strong>lo que existe al final, por extenso.</div>
+<div class="key">
+<strong>Observable</strong>algo que se puede ver o contar.</div>
+<div class="key">
+<strong>Plazo</strong>hasta cuándo tiene que estar listo.</div>
+<div class="key">
+<strong>Excepciones</strong>lo que va para ti, y no cuenta como falla.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 2.2.4</span>
+<button data-copy="code-2-2-4">Copiar ejemplo</button>
+</div>
+<pre id="code-2-2-4">
+<code>Objetivo: decirle al agente cómo es el trabajo bien hecho, de una forma que se pueda comprobar.
+
+## Qué es “bien hecho”
+&lt;ej.: Todo paciente de mañana recibió mensaje y tengo la lista de quiénes no respondieron.&gt;
+Plazo: &lt;ej.: todos los días hasta las 17h&gt;.
+No cuenta como falla: &lt;ej.: casos que me pasaste con el motivo&gt;.
+Solo considera la tarea como terminada cuando esto sea verdad.
+
+Cómo verificar: al final del día, compara el reporte con la frase de arriba. Si no se puede decir que sí o que no, el criterio sigue siendo ambiguo.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Escribe el “listo” como una frase que alguien de afuera puede responder con sí o no.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Usar criterios como “atención de calidad” o “clientes satisfechos”.</p>
+</div>
+</div>
+<aside class="tip">
+<strong>Llévalo a tu agente.</strong> El flujo convierte la imagen del día perfecto en un criterio que cualquiera puede verificar. Usa esta idea para revisar la ficha de tu agente antes de avanzar.</aside>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Describe el día perfecto de tu tarea en una frase que se pueda responder con sí o no.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Ejemplo del restaurante: “Todo ítem con conteo registrado, lista de compras en el sistema hasta las 23h, ítems dudosos marcados para contar de nuevo.” Se puede abrir el sistema y comprobar cada parte.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-2#topico-5" id="topico-5">
+<div class="lesson-head">
+<span class="circle">5</span>
+<h2>Métricas simples que cualquiera puede comprobar</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Contar hecho → Contar bien → Contar excepciones → Comparar semanas" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-2-5-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-2-5-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-2-5-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-2-5-grid)" height="200" width="720"></rect>
+<path d="M280 54 H414" fill="none" marker-end="url(#d2-2-5-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M540 87 V110" fill="none" marker-end="url(#d2-2-5-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M420 148 H287" fill="none" marker-end="url(#d2-2-5-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<path d="M160 116 V92" fill="none" marker-end="url(#d2-2-5-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-2-5-glow)" height="64" rx="10" stroke="#60a5fa" stroke-width="2" width="240" x="40" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="59.0">Contar hecho</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="22"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="59.0">Contar bien</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="420" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="540.0" y="153.0">Contar excepciones</text>
+</g>
+<g>
+<rect fill="#111827" height="64" rx="10" stroke="#38bdf8" stroke-width="2" width="240" x="40" y="116"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="160.0" y="153.0">Comparar semanas</text>
+</g>
+</svg>
+</div>
+<figcaption>El ciclo muestra que una métrica útil es la que se repite: contar todo el día y comparar semana con semana.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m2-2-t5-p1" id="m2-2-t5-p1">Una métrica es un número que acompaña el trabajo a lo largo del tiempo: cuántos mensajes se enviaron, cuántas personas respondieron, cuántos casos llegaron a ti. La regla es contar, no adivinar. Una buena métrica simple cabe en el reporte diario y cualquier persona del equipo puede revisarla.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m2-2-t5-p2" id="m2-2-t5-p2">La impresión engaña: un día con una queja ruidosa parece peor de lo que fue. Los números simples muestran la tendencia. Si los casos que te pasan a ti bajan semana tras semana, el agente está mejorando; si suben, alguna regla necesita ajustarse. También es con esos números que más adelante decides si puede ganar más autonomía.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Volumen</strong>cuánto se hizo.</div>
+<div class="key">
+<strong>Resultado</strong>cuánto salió bien.</div>
+<div class="key">
+<strong>Excepciones</strong>cuánto llegó a ti.</div>
+<div class="key">
+<strong>Errores</strong>cuánto salió mal, anotado sin ocultar.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 2.2.5</span>
+<button data-copy="code-2-2-5">Copiar ejemplo</button>
+</div>
+<pre id="code-2-2-5">
+<code>Objetivo: pedirle al agente números simples que verificas en 2 minutos.
+
+## Reporte
+&lt;ej.: Todos los días a las 18h&gt;, entrégame:
+- Hechos: &lt;ej.: atenciones que respondieron&gt;
+- Resultaron bien: &lt;ej.: resueltos sin necesitarme&gt;
+- Pasados a mí: &lt;cuántos y por qué, una línea cada uno&gt;
+- Errores: &lt;lo que salió mal&gt;. Incluye siempre los errores; un error oculto es peor que un error reportado.
+
+Cómo verificar: suma los números del reporte y revisa si coinciden con el sistema en un día elegido al azar de la semana.</code>
+</pre>
+</div>
+<div class="timeline">
+<h3>Del concepto a la acción</h3>
+<ol>
+<li>Contar bien: identificar la condición inicial.</li>
+<li>Contar bien: aplicar la decisión descrita.</li>
+<li>Contar excepciones: comprobar el efecto en el ejemplo.</li>
+<li>Comparar semanas: registrar la evidencia de salida.</li>
+</ol>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Elige máximo cuatro números y pide siempre en el mismo orden.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Pedirle notas de 0 a 10 que el propio agente se da por su trabajo.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Elige tres números que te gustaría ver todos los días sobre tu tarea.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Ejemplo de la clínica: enviados, confirmados y no respondieron. Son conteos, no opiniones, y las sumas deben coincidir con la agenda del día. Si no coinciden, encontraste un error en 2 minutos.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="lesson" data-inema-topic="modulo-2-2#topico-6" id="topico-6">
+<div class="lesson-head">
+<span class="circle">6</span>
+<h2>Los 3 tests antes de confiar</h2>
+</div>
+<figure class="diagram">
+<div aria-label="Diagrama con desplazamiento horizontal en pantallas pequeñas" class="diagram-scroll" role="region" tabindex="0">
+<svg aria-label="Falta información → Pedido prohibido → Situación de alarma → ¿Se adelantó el plazo?" class="w-full h-auto" role="img" viewbox="0 0 720 200">
+<defs>
+<pattern height="24" id="d2-2-6-grid" patternunits="userSpaceOnUse" width="24">
+<circle cx="2" cy="2" fill="#60a5fa" opacity=".13" r="1"></circle>
+</pattern>
+<filter id="d2-2-6-glow">
+<fegaussianblur result="b" stddeviation="1.8"></fegaussianblur>
+<femerge>
+<femergenode in="b"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+<marker id="d2-2-6-arrow" markerheight="7" markerwidth="7" orient="auto" refx="6" refy="3.5">
+<path d="M0 0 7 3.5 0 7" fill="#60a5fa"></path>
+</marker>
+</defs>
+<rect fill="#0f172a" height="200" width="720"></rect>
+<rect fill="url(#d2-2-6-grid)" height="200" width="720"></rect>
+<path d="M170 137 H182 V110 H192" fill="none" marker-end="url(#d2-2-6-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" filter="url(#d2-2-6-glow)" height="62" rx="10" stroke="#60a5fa" stroke-width="2" width="150" x="20" y="105"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="95.0" y="141.0">Información faltante</text>
+</g>
+<path d="M345 110 H357 V83 H367" fill="none" marker-end="url(#d2-2-6-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="195" y="78"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="270.0" y="114.0">Pedido prohibido</text>
+</g>
+<path d="M520 83 H532 V56 H542" fill="none" marker-end="url(#d2-2-6-arrow)" opacity=".6" stroke="#60a5fa" stroke-width="1.8"></path>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="370" y="51"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="445.0" y="87.0">Situación de alarma</text>
+</g>
+<g>
+<rect fill="#111827" height="62" rx="10" stroke="#38bdf8" stroke-width="2" width="150" x="545" y="24"></rect>
+<text fill="#e5e7eb" font-size="14" font-weight="600" text-anchor="middle" x="620.0" y="60.0">¿Ya está listo?</text>
+</g>
+</svg>
+</div>
+<figcaption>Los pasos muestran el orden de los tests: primero datos, luego límites, luego alarma, y solo entonces el criterio de éxito.</figcaption>
+</figure>
+<div class="inema-prose">
+<h3>Qué es</h3>
+<p data-inema-block="m2-2-t6-p1" id="m2-2-t6-p1">Antes de poner a un agente a funcionar, tú pruebas los tres puntos en los que los agentes suelen fallar: información faltante, pedido prohibido y situación de alerta. Son las mismas tres pruebas que la Ficha del Agente genera “listos” para cada ficha. Si falla en alguna, ajustas la instrucción y repites.</p>
+<h3>Por qué aprender</h3>
+<p data-inema-block="m2-2-t6-p2" id="m2-2-t6-p2">Un agente que responde bien a casos normales puede fallar muy mal en los casos difíciles, y los difíciles son los que causan perjuicio. Probar antes cuesta diez minutos. Descubrir después, con un cliente real, cuesta mucho más: un reembolso indebido, una fecha inventada, una reclamación respondida con el tono equivocado.</p>
+<h3>Conceptos clave</h3>
+</div>
+<div class="key-grid">
+<div class="key">
+<strong>Test 1</strong>información faltante o contradictoria; te avisa y no inventa.</div>
+<div class="key">
+<strong>Test 2</strong>pedido prohibido; lo rechaza y pasa a ti.</div>
+<div class="key">
+<strong>Test 3</strong>situación de alarma; se detiene y te llama.</div>
+<div class="key">
+<strong>Bono</strong>compara una ronda con la definición de listo.</div>
+</div>
+<div class="code-box">
+<div class="code-head">
+<span>EJEMPLO COMENTADO · 2.2.6</span>
+<button data-copy="code-2-2-6">Copiar ejemplo</button>
+</div>
+<pre id="code-2-2-6">
+<code>Objetivo: probar al agente en los tres puntos donde suele fallar, antes de confiar.
+
+TEST 1 — Información faltante
+Dale un caso en que &lt;fuente oficial, ej.: el panel de pedidos&gt; esté incompleto o sea contradictorio.
+Esperado: &lt;regla, ej.: pide el número del pedido y, si no lo encuentra, me pasa el caso&gt;.
+
+TEST 2 — Pedido prohibido
+Pídele, como si fueras un cliente: “&lt;prohibición, ej.: dame 20% de descuento?&gt;”.
+Esperado: que no lo haga, que explique que va a pasártelo y que te avise.
+
+TEST 3 — Situación de alarma
+Simula: “&lt;gatillo, ej.: cliente enojado amenazando con quejarse&gt;”.
+Esperado: que se detenga y te llame, en lugar de resolverlo solo.
+
+Tests listos por área: https://inematds.github.io/7pa/es/?preset=loja
+
+Cómo verificar: los tres deben pasar. Si uno falló, ajusta una regla de la instrucción y vuelve a correr los tres.</code>
+</pre>
+</div>
+<div class="comparison">
+<div class="compare-good">
+<h3>✓ Haz esto</h3>
+<p>✓ Vuelve a ejecutar los tres tests siempre que cambies alguna regla de la instrucción.</p>
+</div>
+<div class="compare-bad">
+<h3>✗ Evita este error</h3>
+<p>✗ Probar solo con preguntas fáciles y concluir que el agente ya está listo.</p>
+</div>
+</div>
+<div class="practice">
+<h3>Practica antes de revelar</h3>
+<p>Escribe los tres tests para tu tarea, cada uno con el pedido que harás y el comportamiento esperado.</p>
+<details>
+<summary>Ver respuesta comentada</summary>
+<p>Ejemplo de la inmobiliaria: test 1, preguntar por un inmueble que salió del sitio; esperado: decir que va a confirmarlo con el agente. Test 2, pedir descuento en el alquiler; esperado: rechazar y pasar a ti. Test 3, decir que quieres cerrar hoy; esperado: detenerse y llamarte.</p>
+</details>
+</div>
+<div class="read-controls">
+<button aria-pressed="false" data-inema-read-toggle="">
+<span aria-hidden="true">✓</span>
+<span data-inema-read-label="">Marcar como leído</span>
+</button>
+<button aria-pressed="false" data-inema-doubt-toggle="">Tengo una duda</button>
+</div>
+</section>
+<section class="quiz" data-inema-check="q-2-2">
+<span class="eyebrow">VERIFICACIÓN SIN BLOQUEO</span>
+<h2>Revise su comprensión</h2>
+<p>El agente no encuentra el precio de un servicio en la tabla oficial. ¿Qué debe indicarle la instrucción que haga?</p>
+<div class="quiz-options">
+<button data-inema-check-option="0">Avisar que el dato está faltando y no inventar.</button>
+<button data-inema-check-option="1">Estimar con base en precios de servicios parecidos.</button>
+<button data-inema-check-option="2">Usar el precio del post del año pasado.</button>
+</div>
+<div aria-live="polite" data-inema-check-feedback="" role="status">
+</div>
+</section>
+<section class="module-summary">
+<h2>¿Qué se lleva de este módulo?</h2>
+<p>Escribir la fuente de verdad, la regla de conflicto, la definición de listo y los 3 tests de un agente antes de ponerlo a correr.</p>
+<ul>
+<li>La fuente de verdad.</li>
+<li>Cuando dos fuentes no coinciden.</li>
+<li>La regla de oro: nunca inventar.</li>
+<li>Definición de listo.</li>
+<li>Métricas simples que cualquiera puede verificar.</li>
+<li>Los 3 tests antes de confiar.</li>
+</ul>
+<p>Próxima acción: aplique lo que aprendió en la ficha de su agente y anote qué aún necesita revisión.</p>
+</section>
+<div class="actions">
+<a class="btn" href="index.html">← Mapa de la ruta</a>
+<a class="btn cta" href="../trilha3/modulo-3-1.html">Próximo: Autonomía con límites →</a>
+</div>
+</article>
+</div>
+<p class="muted">Referencia de este módulo: materiales del proyecto 7PA y <a href="../../index.html#fontes">fuentes y criterios editoriales del curso</a>.</p>
+</main>
+<footer>
+<div class="wrap">Gestión de Agentes de IA: los 7 principios · INEMA.CLUB · v1.0.0 · Curso en portugués<br/>Material educativo original del proyecto 7PA. Progreso guardado en este navegador; exporte una copia en Mi recorrido.<br/>
+<a href="../../index.html#fontes">Fuentes y criterios editoriales</a> · <a href="https://inematds.github.io/7pa/es/" rel="noopener" target="_blank">Ficha del Agente</a> · <a download="" href="../../materiais/entrevistador.md">Prompt entrevistador</a>
+</div>
+</footer>
+<dialog aria-label="Lectura del módulo" id="module-modal">
+<button data-close-modal="">Cerrar módulo</button>
+<iframe title="Contenido completo del módulo">
+</iframe>
+</dialog>
+<script id="quiz-data" type="application/json">{"id": "q-2-2", "q": "El agente no encuentra el precio de un servicio en la tabla oficial. ¿Qué debe indicarle la instrucción que haga?", "options": ["Avisar que el dato está faltando y no inventar.", "Estimar con base en precios de servicios parecidos.", "Usar el precio del post del año pasado."], "answer": "0", "explain": {"0": "Falta un dato: es motivo para avisar, nunca para completarlo. Un precio inventado parece correcto, y justo por eso es peligroso.", "1": "Falta un dato: es motivo para avisar, nunca para completarlo. Un precio inventado parece correcto, y justo por eso es peligroso.", "2": "Falta un dato: es motivo para avisar, nunca para completarlo. Un precio inventado parece correcto, y justo por eso es peligroso."}}</script>
+<script src="../../assets/learn.js">
+</script>
+<script src="../../assets/course.js">
+</script>
+<nav aria-label="Idioma del curso" data-course-languages=""><a href="../../../curso/trilha2/modulo-2-2.html" hreflang="pt-BR" lang="pt-BR">Português</a><a href="../../../en/curso/trilha2/modulo-2-2.html" hreflang="en" lang="en">English</a><a aria-current="page" href="modulo-2-2.html" hreflang="es" lang="es">Español</a></nav><script data-course-language-hash="">document.querySelectorAll('[data-course-languages] a').forEach(function(a){a.addEventListener('click',function(){a.href=a.getAttribute('href').split('#')[0]+location.hash;});});</script></body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "translations": {
+    "a9b447d791c8ed05f860f032": "Objective: paste the agent’s level and prohibitions into ⟪P0⟫ or ⟪P1⟫.",
+    "56b63283fd1a995a4a135b23": "Level: <N2> · <prepare, you approve>. Permission mode: <default>.",
+    "6bbf9468121bf422df566a44": "Mission: <what it does and why it matters>.",
+    "1005a2328906a9062f2addb3": "Source of truth: the repository. Read the file before making any claims about it.",
+    "614a786c6cc7ec57327f49f1": "Ready = <npm test> passes with no errors. Don’t declare ready before that.",
+    "3c9354af7d443a52985cb87c": "- git push, deploy, or publishing",
+    "dfd99aa5a37709b78bef7fbe": "- delete files or folders outside <working directory>",
+    "2a2b0f71acb3a62e50fb0bde": "- modify <.env / client data>",
+    "a25f47c3b120746f77ee5b9b": "If they ask, tell them you’re passing it to me.",
+    "95ac642ef7cad13d7b1e8f72": "- a test fails two times in a row",
+    "5d7ae4d08db6b6a9a2d14741": "- the task requires working outside <working directory>",
+    "21de974eba8d4c7c1648fa5e": "Log each failure in ⟪P0⟫: date, what broke, smallest correction.",
+    "4826a3564f7c74407cd53c64": "How to verify: open a new session and ask, “summarize in 3 lines your rules for this project”; it should mention the level, the ready criterion, and the prohibitions.",
+    "ed6a005172ac9e9321f56eb0": "Objective: create your agent’s Agent Sheet via one of the two paths.",
+    "16fc932a09b6a9419af9dd28": "Path A · browser (no installation)",
+    "ce80760d22f769d81419bcaf": "Open ⟪P0⟫",
+    "9e4d46df5764153fb3bed516": "To start from a ready-made area: ⟪P0⟫<clinic | store | accounting | teacher | real estate | legal | restaurant | NGO | hair salon | agency>",
+    "05d0f4b34e7f9eac3e22006d": "Ready examples: ⟪P0⟫",
+    "2347f6d9093fe76763d258e0": "Path B · terminal with Claude Code",
+    "adbdabb606dce9ff70cfbdc3": "In Claude Code, inside the project folder:",
+    "3a98e439ac4e58884fd8b3ab": "/ficha-agente I want to delegate <the chosen task>",
+    "46287f04b37d4fe37e45feb2": "How to verify: at the end, you should have the level with the reason in 1 sentence, a ready-to-paste instruction, and 3 tests. On path B, check that the file ⟪P0⟫ was created."
+  },
+  "metrics": {
+    "stage": "curso-7pa:content",
+    "model": "openai/gpt-5.4-nano",
+    "lang": "English",
+    "input_items": 22,
+    "source_characters": 2064,
+    "usage": {
+      "prompt_tokens": 1291,
+      "completion_tokens": 742,
+      "total_tokens": 2033,
+      "cost": 0.0011857,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0011857,
+        "upstream_inference_prompt_cost": 0.0002582,
+        "upstream_inference_completions_cost": 0.0009275
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "cost_usd": 0.0011857,
+    "seconds": 5.84,
+    "id": "gen-1790190128-XnAY3uTolswKmR2Ydzj2",
+    "returned_model": "openai/gpt-5.4-nano",
+    "cost_kind": "reported"
+  }
+}
