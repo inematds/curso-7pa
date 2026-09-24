@@ -40,3 +40,11 @@ node scripts/verify_locales.mjs                 # PT/EN/ES
 ---
 
 [INEMA.CLUB](https://inema.club) · [INEMA.PRO](https://inema.pro)
+
+<!-- inema-backlink:v1 -->
+## Mais no INEMA.CLUB
+
+- [Ficha completa deste curso](https://www.inema.club/cursos/282-gestao-de-agentes-de-ia-os-7-principios/)
+- [Guia: como aprender inteligência artificial](https://www.inema.club/aprender-inteligencia-artificial/)
+- [Todos os cursos](https://www.inema.club/cursos/)
+<!-- /inema-backlink:v1 -->
